@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Portal — Table2Eat</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23253626'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23F6F0E4' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="grain"></div>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">Table<span class="n2">2</span>Eat</div>
+    <p class="login-sub">Staff Portal — sign in to manage bookings &amp; inventory</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="login-user">Username</label>
+        <input type="text" id="login-user" placeholder="admin" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="login-pass">Password</label>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <div class="login-error" id="loginError">Incorrect username or password.</div>
+      <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+    </form>
+    <p class="login-hint">Sandbox demo — username <b>admin</b>, password <b>table2eat</b></p>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD SHELL ============ -->
+<div class="shell" id="dashboardShell" style="display:none;">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Table<span class="n2">2</span>Eat</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="bookings"><span class="ic">◧</span> Bookings</button>
+      <button class="nav-item" data-view="inventory"><span class="ic">▦</span> Inventory</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user">Signed in as <strong id="sidebarUser">admin</strong></div>
+      <button id="logoutBtn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- ---------- BOOKINGS VIEW ---------- -->
+    <section class="view active" id="view-bookings">
+      <div class="main-head">
+        <div>
+          <button class="mobile-menu-btn" id="menuBtn">☰</button>
+          <h1>Bookings</h1>
+          <p>Verify payment screenshots and confirm reservations.</p>
+        </div>
+      </div>
+
+      <div class="stat-bento">
+        <div class="stat-tile"><div class="label">Total Bookings</div><div class="num" id="statTotal">0</div></div>
+        <div class="stat-tile warn"><div class="label">Pending Review</div><div class="num" id="statPending">0</div></div>
+        <div class="stat-tile"><div class="label">Confirmed</div><div class="num" id="statConfirmed">0</div></div>
+        <div class="stat-tile"><div class="label">Revenue Collected</div><div class="num" id="statRevenue">₱0</div></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="filter-tabs" id="bookingFilters">
+          <button data-filter="all" class="active">All</button>
+          <button data-filter="pending">Pending</button>
+          <button data-filter="confirmed">Confirmed</button>
+          <button data-filter="declined">Declined</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th><th>Guest</th><th>Date &amp; Time</th><th>Party</th><th>Fee</th><th>Receipt</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookingsTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- INVENTORY VIEW ---------- -->
+    <section class="view" id="view-inventory">
+      <div class="main-head">
+        <div>
+          <button class="mobile-menu-btn" id="menuBtn2">☰</button>
+          <h1>Inventory</h1>
+          <p>Track stock levels across the kitchen and bar.</p>
+        </div>
+        <button class="btn btn-terracotta btn-sm" id="addItemBtn">+ Add Item</button>
+      </div>
+
+      <div class="stat-bento">
+        <div class="stat-tile"><div class="label">Total Items</div><div class="num" id="invTotal">0</div></div>
+        <div class="stat-tile warn"><div class="label">Low Stock</div><div class="num" id="invLow">0</div></div>
+        <div class="stat-tile warn"><div class="label">Out of Stock</div><div class="num" id="invOut">0</div></div>
+        <div class="stat-tile"><div class="label">Categories</div><div class="num" id="invCats">0</div></div>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Category</th><th>Qty</th><th>Reorder At</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="inventoryTbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ RECEIPT MODAL ============ -->
+<div class="modal-overlay" id="receiptModal">
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <h3>Payment Receipt</h3>
+      <button class="modal-close" data-close-modal>✕</button>
+    </div>
+    <img class="modal-img" id="receiptModalImg" alt="Payment receipt">
+    <div id="receiptModalMeta" style="font-size:.88rem; color:var(--ink-soft); line-height:1.7;"></div>
+    <div class="modal-actions" id="receiptModalActions"></div>
+  </div>
+</div>
+
+<!-- ============ ITEM MODAL (add/edit inventory) ============ -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="itemModalTitle">Add Item</h3>
+      <button class="modal-close" data-close-modal>✕</button>
+    </div>
+    <form id="itemForm">
+      <input type="hidden" id="item-id">
+      <div class="field">
+        <label for="item-name">Item Name</label>
+        <input type="text" id="item-name" placeholder="e.g. Salmon Fillet" required>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="item-category">Category</label>
+          <select id="item-category" required>
+            <option value="Produce">Produce</option>
+            <option value="Meat & Seafood">Meat &amp; Seafood</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Dry Goods">Dry Goods</option>
+            <option value="Beverage">Beverage</option>
+            <option value="Bar">Bar</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="item-unit">Unit</label>
+          <input type="text" id="item-unit" placeholder="kg, pcs, L…" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="item-qty">Current Qty</label>
+          <input type="number" id="item-qty" min="0" step="0.1" required>
+        </div>
+        <div class="field">
+          <label for="item-reorder">Reorder Level</label>
+          <input type="number" id="item-reorder" min="0" step="0.1" required>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" data-close-modal>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Item</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="admin.js" defer></script>
+</body>
+</html>

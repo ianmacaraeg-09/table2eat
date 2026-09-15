@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table2Eat — Fresh, Seasonal, Unforgettable</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23253626'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23F6F0E4' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner-bg"></div>
+  <a href="#" class="nav-logo">Table<span class="n2">2</span>Eat</a>
+  <ul class="nav-links">
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#about">Our Story</a></li>
+    <li><a href="#reviews">Reviews</a></li>
+    <li><a href="#visit">Visit</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="admin/index.html" class="nav-admin-link">Staff Login</a>
+    <button class="btn btn-primary btn-sm" id="openBookingBtn">Book a Table</button>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-mesh"></div>
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow" data-reveal="up">Bistro &amp; Kitchen — Est. 2019</div>
+      <h1 class="hero-title" data-reveal="up">
+        A table,<br>set <em>just</em><br>for you.
+      </h1>
+      <p class="hero-sub" data-reveal="up">Seasonal plates built around what's fresh this morning — served in a room designed for long, unhurried dinners with people you like.</p>
+      <div class="hero-actions" data-reveal="up">
+        <button class="btn btn-terracotta" id="openBookingBtn2">Book a Table</button>
+        <a href="#menu" class="btn btn-outline">View Menu</a>
+      </div>
+      <p class="hero-note" data-reveal="up">Reservation fee required · fully deductible from your bill</p>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-ring"></div>
+      <div class="hero-blob" data-reveal="scale">
+        <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=80" alt="Signature plated dish at Table2Eat">
+      </div>
+      <div class="hero-badge" data-reveal="up">
+        <span class="stars">★★★★★</span>
+        <div><strong>4.9</strong> average<small>from 480+ diners</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll-cue"><div class="line"></div>Scroll</div>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee-strip">
+  <div class="marquee-track" id="marqueeTrack">
+    <span>Fresh Daily</span><span>Locally Sourced</span><span>Seasonal Menu</span><span>Reserve Your Table</span>
+    <span>Fresh Daily</span><span>Locally Sourced</span><span>Seasonal Menu</span><span>Reserve Your Table</span>
+  </div>
+</div>
+
+<!-- ============ MENU BENTO ============ -->
+<section class="section-pad" id="menu">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow" data-reveal="up">The Menu</div>
+      <h2 class="section-title" data-reveal="up">Small plates, <em>big</em> flavor.</h2>
+      <p class="section-sub" data-reveal="up">A rotating menu shaped by the season — here's what's on the pass this week.</p>
+    </div>
+
+    <div class="bento">
+      <div class="bento-card large" data-reveal="fade">
+        <img src="https://images.unsplash.com/photo-1616669944447-d65d41a222bd?auto=format&fit=crop&w=1200&q=80" alt="Seared duck breast, chef's signature">
+        <div class="card-info">
+          <div class="tag">Chef's Signature</div>
+          <h3>Seared Duck, Charred Fig &amp; Jus</h3>
+          <div class="price">₱680</div>
+        </div>
+      </div>
+      <div class="bento-card" data-reveal="fade">
+        <img src="https://images.unsplash.com/photo-1553455860-2fa544e14141?auto=format&fit=crop&w=800&q=80" alt="Garden salad starter">
+        <div class="card-info">
+          <div class="tag">Starter</div>
+          <h3>Garden Leaves &amp; Herb Vinaigrette</h3>
+          <div class="price">₱320</div>
+        </div>
+      </div>
+      <div class="bento-card glass-note" data-reveal="fade">
+        <div class="quote-mark">"</div>
+        <p>Every dish tasted like it was made ten minutes before it hit the table. Unreal.</p>
+        <div class="who">— Renee A., Google Review</div>
+      </div>
+      <div class="bento-card tall" data-reveal="fade">
+        <img src="https://images.unsplash.com/photo-1516100882582-96c3a05fe590?auto=format&fit=crop&w=800&q=80" alt="Handmade pasta dish">
+        <div class="card-info">
+          <div class="tag">Handmade</div>
+          <h3>Brown Butter Tagliatelle</h3>
+          <div class="price">₱440</div>
+        </div>
+      </div>
+      <div class="bento-card" data-reveal="fade">
+        <img src="https://images.unsplash.com/photo-1543508834-51a9bcc28a88?auto=format&fit=crop&w=800&q=80" alt="Dessert tart">
+        <div class="card-info">
+          <div class="tag">To Finish</div>
+          <h3>Citrus Tart, Torched Meringue</h3>
+          <div class="price">₱280</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-foot" data-reveal="up">
+      <p style="color:var(--ink-soft); font-size:.92rem;">Prices shown in PHP · full menu available at the table</p>
+      <button class="btn btn-outline" id="openBookingBtn3">Reserve a Seat</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT / STORY ============ -->
+<section class="about section-pad" id="about">
+  <div class="container about-grid">
+    <div class="about-visual" data-reveal="clip">
+      <img src="https://images.unsplash.com/photo-1610963490387-0c08126eacf8?auto=format&fit=crop&w=1000&q=80" alt="Table2Eat dining room interior">
+      <div class="frame-line"></div>
+    </div>
+    <div class="about-copy">
+      <div class="eyebrow" data-reveal="up">Our Story</div>
+      <h2 class="section-title" data-reveal="up">Built around <em>one</em> long table.</h2>
+      <div class="story-track" id="storyTrack">
+        <p class="story-line" data-active="true">Table2Eat started as a six-table pop-up in 2019 — one chef, one market run every morning, one menu that changed with whatever looked best at the stall.</p>
+        <p class="story-line">Five years later the market run hasn't changed. We still walk the same three farms every morning before service, and the menu still bends to what they hand us.</p>
+        <p class="story-line">What we added is the room: warm oak, low light, and a kitchen you can watch work — because a good meal deserves an audience.</p>
+      </div>
+      <div class="stat-row" data-reveal="up">
+        <div class="stat"><b>2019</b><span>Est.</span></div>
+        <div class="stat"><b>32</b><span>Seats</span></div>
+        <div class="stat"><b>4.9★</b><span>480+ Reviews</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESERVE CTA ============ -->
+<section class="reserve-cta section-pad" id="visit">
+  <div class="container">
+    <div class="eyebrow" data-reveal="up">Reservations</div>
+    <h2 class="reserve-title" data-reveal="up">Save a seat<br>for <em>tonight.</em></h2>
+    <p class="reserve-sub" data-reveal="up">Tables are limited and fill quickly on weekends. Reserve online in under two minutes — a small fee holds your table and comes off your final bill.</p>
+    <div class="reserve-actions" data-reveal="up">
+      <button class="btn btn-terracotta" id="openBookingBtn4">Book a Table</button>
+      <a href="#" class="btn btn-ghost-light">Call (02) 8123 4567</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REVIEWS ============ -->
+<section class="section-pad" id="reviews">
+  <div class="container">
+    <div class="section-head center" data-reveal="up">
+      <div class="eyebrow" style="justify-content:center;">Reviews</div>
+      <h2 class="section-title">Word of <em>mouth.</em></h2>
+    </div>
+    <div class="bento" style="grid-auto-rows:200px;">
+      <div class="bento-card glass-note" data-reveal="fade">
+        <div class="quote-mark">"</div>
+        <p>Best tasting menu in the city, hands down. The duck alone is worth the trip.</p>
+        <div class="who">— Marco T.</div>
+      </div>
+      <div class="bento-card glass-note" data-reveal="fade">
+        <div class="quote-mark">"</div>
+        <p>Booking online took two minutes and the staff already knew our order when we walked in.</p>
+        <div class="who">— Dani P.</div>
+      </div>
+      <div class="bento-card glass-note" data-reveal="fade">
+        <div class="quote-mark">"</div>
+        <p>Quiet, warm, unpretentious — exactly what a neighborhood bistro should feel like.</p>
+        <div class="who">— Sam K.</div>
+      </div>
+      <div class="bento-card glass-note" data-reveal="fade">
+        <div class="quote-mark">"</div>
+        <p>The tart. Just — the tart. We ordered a second one before finishing the first.</p>
+        <div class="who">— Renee A.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <div class="footer-brand">Table<span class="n2">2</span>Eat</div>
+      <p class="footer-tag">Fresh, seasonal, unforgettable. A neighborhood bistro built around what's good this morning.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Visit</h4>
+      <ul>
+        <li>142 Marlow Street</li>
+        <li>Makati, Metro Manila</li>
+        <li>Tue–Sun, 11am – 10pm</li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="tel:+6328123456">(02) 8123 4567</a></li>
+        <li><a href="mailto:hello@table2eat.example">hello@table2eat.example</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Follow</h4>
+      <ul>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">Facebook</a></li>
+        <li><a href="admin/index.html">Staff Login</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 Table2Eat. Sandbox project — not a real restaurant.</span>
+    <span>Designed with care.</span>
+  </div>
+</footer>
+
+<!-- ============ BOOKING OVERLAY ============ -->
+<div class="booking-overlay" id="bookingOverlay" aria-hidden="true">
+  <div class="booking-backdrop" id="bookingBackdrop"></div>
+  <div class="booking-panel" id="bookingPanel">
+
+    <div class="booking-head">
+      <div class="title" id="bookingHeadTitle">Reserve Your Table</div>
+      <button class="booking-close" id="bookingCloseBtn" aria-label="Close">✕</button>
+    </div>
+
+    <div class="booking-steps" id="bookingSteps">
+      <div class="step-dot active" data-step="1"></div>
+      <div class="step-dot" data-step="2"></div>
+      <div class="step-dot" data-step="3"></div>
+      <div class="step-dot" data-step="4"></div>
+    </div>
+    <div class="step-labels">
+      <span class="active" data-label="1">Details</span>
+      <span data-label="2">Payment</span>
+      <span data-label="3">Proof</span>
+      <span data-label="4">Done</span>
+    </div>
+
+    <div class="booking-body">
+
+      <!-- STEP 1: DETAILS -->
+      <form class="booking-step active" id="step1" data-step="1" novalidate>
+        <div class="field-row">
+          <div class="field" id="f-name">
+            <label for="bk-name">Full Name</label>
+            <input type="text" id="bk-name" placeholder="Juan Dela Cruz" required>
+            <div class="field-error">Please enter your name.</div>
+          </div>
+          <div class="field" id="f-phone">
+            <label for="bk-phone">Phone Number</label>
+            <input type="tel" id="bk-phone" placeholder="09XX XXX XXXX" required>
+            <div class="field-error">Please enter a valid phone number.</div>
+          </div>
+        </div>
+        <div class="field" id="f-email">
+          <label for="bk-email">Email</label>
+          <input type="email" id="bk-email" placeholder="you@email.com" required>
+          <div class="field-error">Please enter a valid email.</div>
+        </div>
+        <div class="field-row">
+          <div class="field" id="f-date">
+            <label for="bk-date">Date</label>
+            <input type="date" id="bk-date" required>
+            <div class="field-error">Please choose a date.</div>
+          </div>
+          <div class="field" id="f-time">
+            <label for="bk-time">Time</label>
+            <select id="bk-time" required>
+              <option value="">Select time</option>
+              <option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option>
+              <option>6:00 PM</option><option>7:00 PM</option><option>8:00 PM</option><option>9:00 PM</option>
+            </select>
+            <div class="field-error">Please choose a time.</div>
+          </div>
+        </div>
+        <div class="field" id="f-party">
+          <label for="bk-party">Party Size</label>
+          <select id="bk-party" required>
+            <option value="">Select party size</option>
+            <option value="1">1 guest</option><option value="2">2 guests</option>
+            <option value="3">3 guests</option><option value="4">4 guests</option>
+            <option value="5">5 guests</option><option value="6">6 guests</option>
+            <option value="7">7+ guests</option>
+          </select>
+          <div class="field-error">Please choose a party size.</div>
+        </div>
+        <div class="field">
+          <label for="bk-notes">Special Requests <span style="opacity:.6;font-weight:400;">(optional)</span></label>
+          <textarea id="bk-notes" placeholder="Allergies, occasion, seating preference…"></textarea>
+        </div>
+        <div class="booking-actions">
+          <span></span>
+          <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+        </div>
+      </form>
+
+      <!-- STEP 2: PAYMENT -->
+      <div class="booking-step" id="step2" data-step="2">
+        <div class="summary-card" id="summaryCard"></div>
+        <div class="pay-panel">
+          <div class="qr-box"><div id="qrcode-canvas"></div></div>
+          <div class="pay-instructions">
+            <div class="pay-amount">₱<span id="payAmount">300</span></div>
+            <div class="pay-ref">Ref: <span id="payRef">—</span></div>
+            <ul style="margin-top:1rem;">
+              <li><b>1.</b> Open your GCash / Maya app</li>
+              <li><b>2.</b> Scan the QR code shown here</li>
+              <li><b>3.</b> Pay the exact amount above</li>
+              <li><b>4.</b> Screenshot your receipt</li>
+            </ul>
+          </div>
+        </div>
+        <div class="booking-actions">
+          <button type="button" class="btn btn-outline" data-back="1">Back</button>
+          <button type="button" class="btn btn-primary" data-next="3">I've Paid — Upload Proof</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: UPLOAD -->
+      <div class="booking-step" id="step3" data-step="3">
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="uploadInput" accept="image/*">
+          <div class="icon">⬆</div>
+          <p><strong>Click to upload</strong> or drag your payment screenshot here<br>PNG or JPG, up to 5MB</p>
+        </div>
+        <div class="upload-preview" id="uploadPreview">
+          <img id="uploadPreviewImg" alt="Receipt preview">
+          <div><div class="name" id="uploadPreviewName">receipt.png</div><small style="color:var(--ink-soft);">Ready to submit</small></div>
+          <button class="remove" id="uploadRemoveBtn">Remove</button>
+        </div>
+        <div class="field-error" id="uploadError" style="display:none; margin-top:.8rem;">Please upload your payment screenshot before submitting.</div>
+        <div class="booking-actions">
+          <button type="button" class="btn btn-outline" data-back="2">Back</button>
+          <button type="button" class="btn btn-primary" id="submitBookingBtn">Submit Booking</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: CONFIRMATION -->
+      <div class="booking-step" id="step4" data-step="4">
+        <div class="confirm-wrap">
+          <div class="confirm-check">
+            <svg viewBox="0 0 24 24"><path id="checkPath" d="M4 12.5L9.5 18L20 6"/></svg>
+          </div>
+          <h3>Booking Submitted!</h3>
+          <div class="ref" id="confirmRef">T2E-000000</div>
+          <p>Our staff will verify your payment and confirm your reservation shortly. You'll receive updates via the email you provided.</p>
+          <button class="btn btn-primary" id="doneBtn" style="margin-top:1.6rem;">Back to Home</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/booking.js"></script>
+</body>
+</html>
