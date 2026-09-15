@@ -21,9 +21,6 @@ window.addEventListener('DOMContentLoaded', () => {
         clearProps:'transform' }, .3)
     .fromTo('.hero-blob img', { scale:1.25 }, { scale:1.08, duration:2, ease:'power2.out' }, .3)
     .to('.hero-badge', { opacity:1, y:0, duration:.9 }, .75);
-
-  gsap.set(['.hero .eyebrow','.hero-title','.hero-sub','.hero-actions','.hero-note','.hero-badge'],
-    { clearProps:'none' });
 });
 
 /* initial states for hero pieces (set immediately, before load tl runs) */
