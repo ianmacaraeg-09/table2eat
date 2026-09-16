@@ -22,11 +22,12 @@ create table if not exists public.bookings (
 
 alter table public.bookings enable row level security;
 
--- Customers (unauthenticated) can submit a booking, but only ever insert —
--- never read, update, or delete other people's reservation details.
+-- Anyone can submit a booking — including an already-authenticated staff
+-- session, since the same browser is often used to test/use both sides —
+-- but only ever insert, never read, update, or delete others' reservations.
 create policy "Anyone can submit a booking"
   on public.bookings for insert
-  to anon
+  to anon, authenticated
   with check (true);
 
 -- Staff (signed in) manage everything.
@@ -82,10 +83,11 @@ insert into storage.buckets (id, name, public)
 values ('receipts', 'receipts', false)
 on conflict (id) do nothing;
 
--- Customers can upload their payment screenshot but never list/read others'.
+-- Anyone can upload a receipt — anon or an authenticated staff session
+-- testing the flow in the same browser — but never list/read others'.
 create policy "Anyone can upload a receipt"
   on storage.objects for insert
-  to anon
+  to anon, authenticated
   with check (bucket_id = 'receipts');
 
 -- Staff can view receipts (via signed URLs generated server/client-side).
