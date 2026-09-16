@@ -15,13 +15,6 @@ const qsa = (s, ctx = document) => Array.from(ctx.querySelectorAll(s));
 let lenis;
 function initSmoothScroll() {
   if (reduceMotion || typeof Lenis === 'undefined') return;
-  /* lerp (not duration/easing) mode: each frame moves a fixed fraction
-     closer to the target instead of running a whole new fixed-length
-     tween per wheel event. Duration-mode restarts a ~1s eased tween on
-     every incoming wheel tick, and trackpads fire many of those rapidly
-     — the overlapping restarted tweens compound into visible oscillation
-     ("trembling") and a laggy-feeling start. lerp is the steadier choice
-     for continuous wheel/trackpad input. */
   lenis = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1 });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((time) => lenis.raf(time * 1000));
@@ -163,17 +156,27 @@ function initReveals() {
     clip:  { from: { opacity: 1, clipPath: 'inset(0 0 100% 0 round 28px)' }, to: { clipPath: 'inset(0 0 0% 0 round 28px)' } },
   };
 
-  qsa('[data-reveal]').forEach((el, i) => {
+  /* One ScrollTrigger per element here would mean 20-30+ separate
+     instances across the page, each needing bounds-checking on every
+     scroll tick. Grouping by reveal type and using ScrollTrigger.batch
+     (GSAP's own recommendation for "many similar reveal elements") cuts
+     that down to one batched trigger per type instead. */
+  const groups = { up: [], fade: [], scale: [], clip: [] };
+  qsa('[data-reveal]').forEach((el) => {
     if (el.closest('.hero')) return; // hero handled by initHero
-    const type = revealTypes[el.dataset.reveal] || revealTypes.up;
-    if (reduceMotion) { gsap.set(el, type.to); return; }
-    gsap.set(el, type.from);
-    gsap.to(el, {
-      ...type.to,
-      duration: 1,
-      ease: 'expo.out',
-      delay: (i % 5) * 0.06,
-      scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+    const key = revealTypes[el.dataset.reveal] ? el.dataset.reveal : 'up';
+    groups[key].push(el);
+  });
+
+  Object.entries(groups).forEach(([key, els]) => {
+    if (!els.length) return;
+    const type = revealTypes[key];
+    if (reduceMotion) { gsap.set(els, type.to); return; }
+    gsap.set(els, type.from);
+    ScrollTrigger.batch(els, {
+      start: 'top 88%',
+      once: true,
+      onEnter: (batch) => gsap.to(batch, { ...type.to, duration: 1, ease: 'expo.out', stagger: 0.06 }),
     });
   });
 
