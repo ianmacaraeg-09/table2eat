@@ -165,16 +165,10 @@
   }
 
   function renderQR() {
-    const holder = document.getElementById('qrcode-canvas');
-    holder.innerHTML = '';
+    // the QR Ph code itself is a static image (assets/images/qr-ph.jpg) —
+    // it's a real, reusable scan-to-pay code, not generated per-booking
     document.getElementById('payAmount').textContent = state.fee;
     document.getElementById('payRef').textContent = state.ref;
-    const payload = `TABLE2EAT|REF:${state.ref}|AMOUNT:${state.fee}|NAME:${state.details.name}`;
-    if (window.QRCode) {
-      new QRCode(holder, { text: payload, width: 176, height: 176, colorDark: '#253626', colorLight: '#FFFDF7', correctLevel: QRCode.CorrectLevel.M });
-    } else {
-      holder.textContent = 'QR unavailable — reference: ' + state.ref;
-    }
   }
 
   function escapeHtml(s) {
