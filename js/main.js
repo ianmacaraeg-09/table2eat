@@ -8,33 +8,6 @@ const qs = (s, ctx = document) => ctx.querySelector(s);
 const qsa = (s, ctx = document) => Array.from(ctx.querySelectorAll(s));
 
 /* ============================================================
-   LENIS — smooth inertia scroll, wired into ScrollTrigger + GSAP's
-   own ticker so pinned/scrubbed animations stay in sync with it.
-   Skipped entirely under reduced-motion: native scroll takes over.
-   ============================================================ */
-let lenis;
-function initSmoothScroll() {
-  if (reduceMotion || typeof Lenis === 'undefined') return;
-  lenis = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1 });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => lenis.raf(time * 1000));
-  gsap.ticker.lagSmoothing(0);
-
-  /* in-page nav links: route through Lenis so anchor jumps stay smooth
-     (Lenis disables native `scroll-behavior:smooth` while active).
-     Pass the selector string, not the resolved element — Lenis 1.1.x
-     silently no-ops when given a raw node here. */
-  qsa('a[href^="#"]').forEach((a) => {
-    const id = a.getAttribute('href');
-    if (id.length < 2 || !qs(id)) return;
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      lenis.scrollTo(id, { offset: -84 });
-    });
-  });
-}
-
-/* ============================================================
    NAV — glass background on scroll
    ============================================================ */
 function initNav() {
@@ -406,7 +379,6 @@ function initBookingTriggers() {
    the split-line masks measure against final text metrics
    ============================================================ */
 document.fonts.ready.then(() => {
-  initSmoothScroll();
   initNav();
   initCursorTrail();
   initMagnetic();
@@ -431,11 +403,11 @@ document.fonts.ready.then(() => {
   initBookingTriggers();
 
   ScrollTrigger.refresh();
-  window.addEventListener('resize', () => { lenis?.resize(); ScrollTrigger.refresh(); });
+  window.addEventListener('resize', () => ScrollTrigger.refresh());
 
   /* images (several hotlinked, off the critical path) can still be loading
-     when the block above runs — both Lenis's scroll limit and ScrollTrigger's
-     cached trigger positions need a resync once the page reaches full height,
-     or anchor jumps / pinned sections land short */
-  window.addEventListener('load', () => { lenis?.resize(); ScrollTrigger.refresh(); });
+     when the block above runs — ScrollTrigger's cached trigger positions
+     need a resync once the page reaches full height, or pinned sections
+     can land short */
+  window.addEventListener('load', () => ScrollTrigger.refresh());
 });

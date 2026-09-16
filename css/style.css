@@ -37,9 +37,6 @@
 
 *,*::before,*::after{ box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
-/* Lenis drives scrolling itself once active — native smooth-scroll would fight it */
-html.lenis, html.lenis body{ height:auto; }
-.lenis.lenis-smooth{ scroll-behavior:auto; }
 body{
   margin:0;
   background:var(--cream);
