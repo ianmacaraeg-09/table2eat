@@ -15,7 +15,14 @@ const qsa = (s, ctx = document) => Array.from(ctx.querySelectorAll(s));
 let lenis;
 function initSmoothScroll() {
   if (reduceMotion || typeof Lenis === 'undefined') return;
-  lenis = new Lenis({ duration: 1.1, smoothWheel: true, wheelMultiplier: 1 });
+  /* lerp (not duration/easing) mode: each frame moves a fixed fraction
+     closer to the target instead of running a whole new fixed-length
+     tween per wheel event. Duration-mode restarts a ~1s eased tween on
+     every incoming wheel tick, and trackpads fire many of those rapidly
+     — the overlapping restarted tweens compound into visible oscillation
+     ("trembling") and a laggy-feeling start. lerp is the steadier choice
+     for continuous wheel/trackpad input. */
+  lenis = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1 });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
