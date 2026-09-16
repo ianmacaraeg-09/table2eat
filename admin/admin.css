@@ -115,6 +115,8 @@ tbody tr:hover{ background:rgba(37,54,38,.03); }
 .badge.pending{ background:rgba(198,160,99,.18); color:#93701f; }
 .badge.confirmed{ background:rgba(53,73,47,.14); color:var(--forest); }
 .badge.declined{ background:rgba(193,98,46,.14); color:var(--terracotta-deep); }
+.badge.awaiting_payment{ background:rgba(37,54,38,.08); color:var(--ink-soft); }
+.badge.payment_failed{ background:rgba(193,98,46,.14); color:var(--terracotta-deep); }
 .badge.instock{ background:rgba(53,73,47,.14); color:var(--forest); }
 .badge.low{ background:rgba(198,160,99,.2); color:#93701f; }
 .badge.out{ background:rgba(193,98,46,.14); color:var(--terracotta-deep); }

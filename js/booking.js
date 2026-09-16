@@ -278,19 +278,7 @@
       });
       if (insertErr) throw insertErr;
 
-      document.getElementById('confirmRef').textContent = state.ref;
-      showStep(4);
-
-      // draw the checkmark
-      if (reduceMotion) {
-        gsap.set('#checkPath', { strokeDashoffset: 0 });
-        gsap.set('.confirm-check', { scale: 1, opacity: 1 });
-      } else {
-        requestAnimationFrame(() => {
-          gsap.fromTo('#checkPath', { strokeDashoffset: 48 }, { strokeDashoffset: 0, duration: .7, delay: .25, ease: 'power2.out' });
-          gsap.fromTo('.confirm-check', { scale: .5, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)' });
-        });
-      }
+      showConfirmation(state.ref);
     } catch (err) {
       console.error('Booking submission failed:', err);
       showUploadError("Something went wrong submitting your booking — please try again.");
@@ -300,7 +288,123 @@
     }
   });
 
+  function showConfirmation(ref) {
+    document.getElementById('confirmRef').textContent = ref;
+    showStep(4);
+
+    if (reduceMotion) {
+      gsap.set('#checkPath', { strokeDashoffset: 0 });
+      gsap.set('.confirm-check', { scale: 1, opacity: 1 });
+    } else {
+      requestAnimationFrame(() => {
+        gsap.fromTo('#checkPath', { strokeDashoffset: 48 }, { strokeDashoffset: 0, duration: .7, delay: .25, ease: 'power2.out' });
+        gsap.fromTo('.confirm-check', { scale: .5, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)' });
+      });
+    }
+  }
+
   document.getElementById('doneBtn').addEventListener('click', close);
+
+  /* ---------------- step 2: pay-method tabs ---------------- */
+  document.querySelectorAll('.pay-tab').forEach(tab => tab.addEventListener('click', () => {
+    document.querySelectorAll('.pay-tab').forEach(t => t.classList.toggle('active', t === tab));
+    const target = tab.dataset.payTab;
+    document.querySelectorAll('.pay-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.payPanel === target));
+  }));
+
+  /* ---------------- step 2: pay online now (PayMongo) ---------------- */
+  const gatewayMethods = document.getElementById('gatewayMethods');
+  const gatewayStatus  = document.getElementById('gatewayStatus');
+  const gatewayError   = document.getElementById('gatewayError');
+
+  function setGatewayStatus(msg) {
+    gatewayError.style.display = 'none';
+    gatewayStatus.style.display = msg ? 'block' : 'none';
+    gatewayStatus.textContent = msg || '';
+  }
+  function setGatewayError(msg) {
+    gatewayStatus.style.display = 'none';
+    gatewayError.style.display = 'block';
+    gatewayError.textContent = msg;
+  }
+
+  gatewayMethods?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-method]');
+    if (!btn || !state.ref) return;
+
+    document.querySelectorAll('#gatewayMethods [data-method]').forEach(b => b.disabled = true);
+    setGatewayStatus('Setting up your payment…');
+
+    try {
+      const res = await fetch(`${EDGE_FUNCTIONS_URL}/create-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({
+          ref: state.ref,
+          method: btn.dataset.method,
+          fee: state.fee,
+          name: state.details.name,
+          phone: state.details.phone,
+          email: state.details.email,
+          date: state.details.date,
+          time: state.details.time,
+          party: state.details.party,
+          notes: state.details.notes,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Could not start the payment.');
+
+      setGatewayStatus('Redirecting you to complete payment…');
+      window.location.href = json.checkout_url;
+    } catch (err) {
+      console.error('Payment setup failed:', err);
+      setGatewayError('Something went wrong setting up your payment — please try again.');
+      document.querySelectorAll('#gatewayMethods [data-method]').forEach(b => b.disabled = false);
+    }
+  });
+
+  /* ---------------- returning from PayMongo redirect ---------------- */
+  (async function handlePaymentRedirect() {
+    const params = new URLSearchParams(window.location.search);
+    const paymentIntentId = params.get('pi');
+    const ref = params.get('ref');
+    if (!paymentIntentId || !ref) return;
+
+    // clean the URL so a refresh doesn't re-trigger this
+    window.history.replaceState({}, '', window.location.pathname);
+
+    open(null);
+    showStep(2);
+    document.querySelectorAll('.pay-tab').forEach(t => t.classList.toggle('active', t.dataset.payTab === 'gateway'));
+    document.querySelectorAll('.pay-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.payPanel === 'gateway'));
+    document.getElementById('summaryCard').innerHTML = '';
+    document.querySelectorAll('#gatewayMethods [data-method]').forEach(b => b.style.display = 'none');
+    setGatewayStatus('Verifying your payment…');
+
+    const maxAttempts = 15; // ~30s at 2s intervals
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      try {
+        const res = await fetch(`${EDGE_FUNCTIONS_URL}/check-payment-status?ref=${encodeURIComponent(ref)}&payment_intent_id=${encodeURIComponent(paymentIntentId)}&_=${Date.now()}`, {
+          headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+          cache: 'no-store',
+        });
+        if (!res.ok) continue;
+        const { status } = await res.json();
+        if (status === 'confirmed') { showConfirmation(ref); return; }
+        if (status === 'payment_failed') {
+          setGatewayError("Your payment didn't go through. Please try again or use manual transfer instead.");
+          document.querySelectorAll('#gatewayMethods [data-method]').forEach(b => { b.style.display = ''; b.disabled = false; });
+          return;
+        }
+        setGatewayStatus('Still verifying your payment…');
+      } catch (err) {
+        console.error('Payment status check failed:', err);
+      }
+    }
+    setGatewayError("We're still confirming your payment — this can take a moment. Check back shortly, or contact us with your reference: " + ref);
+  })();
 
   window.Table2EatBooking = { open, close };
 })();

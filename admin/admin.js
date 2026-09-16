@@ -99,6 +99,8 @@
     renderBookings();
   }));
 
+  const statusLabels = { pending: 'pending', confirmed: 'confirmed', declined: 'declined', awaiting_payment: 'awaiting payment', payment_failed: 'payment failed' };
+
   async function renderBookings() {
     const all = await getBookings();
     const list = bookingFilter === 'all' ? all : all.filter(b => b.status === bookingFilter);
@@ -109,11 +111,11 @@
     document.getElementById('statRevenue').textContent = money(all.filter(b => b.status === 'confirmed').reduce((s,b) => s + Number(b.fee||0), 0));
 
     if (!list.length) {
-      bookingsTbody.innerHTML = `<tr class="empty-row"><td colspan="8">No ${bookingFilter === 'all' ? '' : bookingFilter + ' '}bookings yet.</td></tr>`;
+      bookingsTbody.innerHTML = `<tr class="empty-row"><td colspan="8">No ${bookingFilter === 'all' ? '' : statusLabels[bookingFilter] + ' '}bookings yet.</td></tr>`;
       return;
     }
 
-    const thumbUrls = await Promise.all(list.map(b => getReceiptUrl(b.receipt_path)));
+    const thumbUrls = await Promise.all(list.map(b => b.receipt_path ? getReceiptUrl(b.receipt_path) : Promise.resolve('')));
 
     bookingsTbody.innerHTML = list.map((b, i) => `
       <tr data-id="${b.id}">
@@ -123,15 +125,17 @@
         <td>${b.party} guest${b.party>1?'s':''}</td>
         <td>${money(b.fee)}</td>
         <td>
-          <button class="thumb-btn" data-view-receipt="${b.id}"><img src="${thumbUrls[i]}" alt="Receipt for ${b.ref}"></button>
+          ${b.payment_method === 'paymongo'
+            ? `<span class="cell-sub">Paid via PayMongo</span>`
+            : `<button class="thumb-btn" data-view-receipt="${b.id}"><img src="${thumbUrls[i]}" alt="Receipt for ${b.ref}"></button>`}
         </td>
-        <td><span class="badge ${b.status}">${b.status}</span></td>
+        <td><span class="badge ${b.status}">${statusLabels[b.status] || b.status}</span></td>
         <td>
           <div class="row-actions">
             ${b.status === 'pending' ? `
               <button class="icon-btn confirm" title="Confirm" data-action="confirm" data-id="${b.id}">✓</button>
               <button class="icon-btn decline" title="Decline" data-action="decline" data-id="${b.id}">✕</button>
-            ` : `<button class="icon-btn" title="View" data-view-receipt="${b.id}">👁</button>`}
+            ` : b.receipt_path ? `<button class="icon-btn" title="View" data-view-receipt="${b.id}">👁</button>` : ''}
           </div>
         </td>
       </tr>

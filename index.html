@@ -354,22 +354,44 @@
       <!-- STEP 2: PAYMENT -->
       <div class="booking-step" id="step2" data-step="2">
         <div class="summary-card" id="summaryCard"></div>
-        <div class="pay-panel">
-          <div class="qr-box"><div id="qrcode-canvas"></div></div>
-          <div class="pay-instructions">
-            <div class="pay-amount">₱<span id="payAmount">300</span></div>
-            <div class="pay-ref">Ref: <span id="payRef">—</span></div>
-            <ul style="margin-top:1rem;">
-              <li><b>1.</b> Open your GCash / Maya app</li>
-              <li><b>2.</b> Scan the QR code shown here</li>
-              <li><b>3.</b> Pay the exact amount above</li>
-              <li><b>4.</b> Screenshot your receipt</li>
-            </ul>
+
+        <div class="pay-method-tabs">
+          <button type="button" class="pay-tab active" data-pay-tab="manual">Manual Transfer</button>
+          <button type="button" class="pay-tab" data-pay-tab="gateway">Pay Online Now</button>
+        </div>
+
+        <div class="pay-tab-panel active" data-pay-panel="manual">
+          <div class="pay-panel">
+            <div class="qr-box"><div id="qrcode-canvas"></div></div>
+            <div class="pay-instructions">
+              <div class="pay-amount">₱<span id="payAmount">300</span></div>
+              <div class="pay-ref">Ref: <span id="payRef">—</span></div>
+              <ul style="margin-top:1rem;">
+                <li><b>1.</b> Open your GCash / Maya app</li>
+                <li><b>2.</b> Scan the QR code shown here</li>
+                <li><b>3.</b> Pay the exact amount above</li>
+                <li><b>4.</b> Screenshot your receipt</li>
+              </ul>
+            </div>
+          </div>
+          <div class="booking-actions">
+            <button type="button" class="btn btn-outline" data-back="1">Back</button>
+            <button type="button" class="btn btn-primary" data-next="3">I've Paid — Upload Proof</button>
           </div>
         </div>
-        <div class="booking-actions">
-          <button type="button" class="btn btn-outline" data-back="1">Back</button>
-          <button type="button" class="btn btn-primary" data-next="3">I've Paid — Upload Proof</button>
+
+        <div class="pay-tab-panel" data-pay-panel="gateway">
+          <p class="gateway-note">Pay instantly through PayMongo — your table is confirmed automatically the moment payment clears, no screenshot needed.</p>
+          <div class="gateway-methods" id="gatewayMethods">
+            <button type="button" class="gateway-method-btn" data-method="gcash">GCash</button>
+            <button type="button" class="gateway-method-btn" data-method="paymaya">Maya</button>
+          </div>
+          <div class="gateway-status" id="gatewayStatus" style="display:none;"></div>
+          <div class="field-error" id="gatewayError" style="display:none;"></div>
+          <div class="booking-actions">
+            <button type="button" class="btn btn-outline" data-back="1">Back</button>
+            <span></span>
+          </div>
         </div>
       </div>
 
