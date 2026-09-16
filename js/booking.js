@@ -1,5 +1,6 @@
 /* Table2Eat — booking flow: morph modal, multi-step wizard, QR pay, localStorage */
 (function () {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const FEE_BASE = 300;
   const FEE_PER_EXTRA_GUEST = 50; // beyond 2 guests
 
@@ -64,6 +65,12 @@
     overlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
 
+    if (reduceMotion) {
+      gsap.set(backdrop, { opacity: 1 });
+      gsap.set(panel, { x: 0, y: 0, scale: 1, opacity: 1, borderRadius: '32px' });
+      return;
+    }
+
     const panelRect = panel.getBoundingClientRect();
     const btnRect = triggerEl ? triggerEl.getBoundingClientRect() : null;
     const originX = btnRect ? (btnRect.left + btnRect.width/2) - (panelRect.left + panelRect.width/2) : 0;
@@ -79,6 +86,13 @@
   }
 
   function close() {
+    if (reduceMotion) {
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      resetWizard();
+      return;
+    }
     const tl = gsap.timeline({ onComplete() {
       overlay.classList.remove('is-open');
       overlay.setAttribute('aria-hidden', 'true');
@@ -255,10 +269,15 @@
     showStep(4);
 
     // draw the checkmark
-    requestAnimationFrame(() => {
-      gsap.fromTo('#checkPath', { strokeDashoffset: 48 }, { strokeDashoffset: 0, duration: .7, delay: .25, ease: 'power2.out' });
-      gsap.fromTo('.confirm-check', { scale: .5, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)' });
-    });
+    if (reduceMotion) {
+      gsap.set('#checkPath', { strokeDashoffset: 0 });
+      gsap.set('.confirm-check', { scale: 1, opacity: 1 });
+    } else {
+      requestAnimationFrame(() => {
+        gsap.fromTo('#checkPath', { strokeDashoffset: 48 }, { strokeDashoffset: 0, duration: .7, delay: .25, ease: 'power2.out' });
+        gsap.fromTo('.confirm-check', { scale: .5, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)' });
+      });
+    }
   });
 
   document.getElementById('doneBtn').addEventListener('click', close);

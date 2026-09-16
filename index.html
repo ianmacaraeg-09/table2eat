@@ -10,6 +10,7 @@
 <body>
 
 <div class="grain"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
 
 <!-- ============ NAV ============ -->
 <nav class="nav" id="nav">
@@ -33,8 +34,10 @@
   <div class="container hero-grid">
     <div class="hero-copy">
       <div class="eyebrow" data-reveal="up">Bistro &amp; Kitchen — Est. 2019</div>
-      <h1 class="hero-title" data-reveal="up">
-        A table,<br>set <em>just</em><br>for you.
+      <h1 class="hero-title">
+        <span class="split-line"><span class="split-line-inner">A table,</span></span>
+        <span class="split-line"><span class="split-line-inner">set <em>just</em></span></span>
+        <span class="split-line"><span class="split-line-inner">for you.</span></span>
       </h1>
       <p class="hero-sub" data-reveal="up">Seasonal plates built around what's fresh this morning — served in a room designed for long, unhurried dinners with people you like.</p>
       <div class="hero-actions" data-reveal="up">
@@ -70,7 +73,7 @@
   <div class="container">
     <div class="section-head">
       <div class="eyebrow" data-reveal="up">The Menu</div>
-      <h2 class="section-title" data-reveal="up">Small plates, <em>big</em> flavor.</h2>
+      <h2 class="section-title"><span class="split-line"><span class="split-line-inner">Small plates, <em>big</em> flavor.</span></span></h2>
       <p class="section-sub" data-reveal="up">A rotating menu shaped by the season — here's what's on the pass this week.</p>
     </div>
 
@@ -121,6 +124,43 @@
   </div>
 </section>
 
+<!-- ============ TASTING REEL (horizontal pinned scroll) ============ -->
+<section class="tasting-pin" id="tastingPin">
+  <div class="tasting-head">
+    <div class="eyebrow" data-reveal="up">More From The Kitchen</div>
+    <h2 class="section-title"><span class="split-line"><span class="split-line-inner">Keep scrolling —<br>there's more on the pass.</span></span></h2>
+  </div>
+  <div class="tasting-viewport">
+    <div class="tasting-track" id="tastingTrack">
+      <div class="tasting-card">
+        <img src="https://images.unsplash.com/photo-1616669967602-91c99d4af626?auto=format&fit=crop&w=700&q=80" alt="Wild mushroom risotto">
+        <div class="tasting-info"><div class="tag">Handmade</div><h3>Wild Mushroom Risotto</h3><div class="price">₱420</div></div>
+      </div>
+      <div class="tasting-card">
+        <img src="https://images.unsplash.com/photo-1774806288349-3d910c6a9334?auto=format&fit=crop&w=700&q=80" alt="Grilled ribeye steak">
+        <div class="tasting-info"><div class="tag">From the Grill</div><h3>Charred Ribeye, Herb Butter</h3><div class="price">₱780</div></div>
+      </div>
+      <div class="tasting-card">
+        <img src="https://images.unsplash.com/photo-1601912262364-3a35aa0d9399?auto=format&fit=crop&w=700&q=80" alt="Cheese and charcuterie board">
+        <div class="tasting-info"><div class="tag">To Share</div><h3>Cheese &amp; Charcuterie Board</h3><div class="price">₱560</div></div>
+      </div>
+      <div class="tasting-card">
+        <img src="https://images.unsplash.com/photo-1584776252066-7ad031913ca0?auto=format&fit=crop&w=700&q=80" alt="Fresh oysters on ice">
+        <div class="tasting-info"><div class="tag">Raw Bar</div><h3>Half-Dozen Oysters, Mignonette</h3><div class="price">₱480</div></div>
+      </div>
+      <div class="tasting-card">
+        <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=700&q=80" alt="Craft cocktails on the bar">
+        <div class="tasting-info"><div class="tag">From the Bar</div><h3>Seasonal Cocktail Flight</h3><div class="price">₱350</div></div>
+      </div>
+      <div class="tasting-card note">
+        <div class="quote-mark">"</div>
+        <p>Ask your server what's off-menu tonight — the kitchen usually has one dish that never makes it to print.</p>
+        <div class="who">— The Kitchen</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ ABOUT / STORY ============ -->
 <section class="about section-pad" id="about">
   <div class="container about-grid">
@@ -130,7 +170,7 @@
     </div>
     <div class="about-copy">
       <div class="eyebrow" data-reveal="up">Our Story</div>
-      <h2 class="section-title" data-reveal="up">Built around <em>one</em> long table.</h2>
+      <h2 class="section-title"><span class="split-line"><span class="split-line-inner">Built around <em>one</em> long table.</span></span></h2>
       <div class="story-track" id="storyTrack">
         <p class="story-line" data-active="true">Table2Eat started as a six-table pop-up in 2019 — one chef, one market run every morning, one menu that changed with whatever looked best at the stall.</p>
         <p class="story-line">Five years later the market run hasn't changed. We still walk the same three farms every morning before service, and the menu still bends to what they hand us.</p>
@@ -138,8 +178,8 @@
       </div>
       <div class="stat-row" data-reveal="up">
         <div class="stat"><b>2019</b><span>Est.</span></div>
-        <div class="stat"><b>32</b><span>Seats</span></div>
-        <div class="stat"><b>4.9★</b><span>480+ Reviews</span></div>
+        <div class="stat"><b><span data-count-to="32" data-decimals="0">0</span></b><span>Seats</span></div>
+        <div class="stat"><b><span data-count-to="4.9" data-decimals="1">0.0</span>★</b><span>480+ Reviews</span></div>
       </div>
     </div>
   </div>
@@ -149,7 +189,10 @@
 <section class="reserve-cta section-pad" id="visit">
   <div class="container">
     <div class="eyebrow" data-reveal="up">Reservations</div>
-    <h2 class="reserve-title" data-reveal="up">Save a seat<br>for <em>tonight.</em></h2>
+    <h2 class="reserve-title">
+      <span class="split-line"><span class="split-line-inner">Save a seat</span></span>
+      <span class="split-line"><span class="split-line-inner">for <em>tonight.</em></span></span>
+    </h2>
     <p class="reserve-sub" data-reveal="up">Tables are limited and fill quickly on weekends. Reserve online in under two minutes — a small fee holds your table and comes off your final bill.</p>
     <div class="reserve-actions" data-reveal="up">
       <button class="btn btn-terracotta" id="openBookingBtn4">Book a Table</button>
@@ -163,25 +206,25 @@
   <div class="container">
     <div class="section-head center" data-reveal="up">
       <div class="eyebrow" style="justify-content:center;">Reviews</div>
-      <h2 class="section-title">Word of <em>mouth.</em></h2>
+      <h2 class="section-title"><span class="split-line"><span class="split-line-inner">Word of <em>mouth.</em></span></span></h2>
     </div>
-    <div class="bento" style="grid-auto-rows:200px;">
-      <div class="bento-card glass-note" data-reveal="fade">
+    <div class="bento" id="reviewsBento" style="grid-auto-rows:200px;">
+      <div class="bento-card glass-note">
         <div class="quote-mark">"</div>
         <p>Best tasting menu in the city, hands down. The duck alone is worth the trip.</p>
         <div class="who">— Marco T.</div>
       </div>
-      <div class="bento-card glass-note" data-reveal="fade">
+      <div class="bento-card glass-note">
         <div class="quote-mark">"</div>
         <p>Booking online took two minutes and the staff already knew our order when we walked in.</p>
         <div class="who">— Dani P.</div>
       </div>
-      <div class="bento-card glass-note" data-reveal="fade">
+      <div class="bento-card glass-note">
         <div class="quote-mark">"</div>
         <p>Quiet, warm, unpretentious — exactly what a neighborhood bistro should feel like.</p>
         <div class="who">— Sam K.</div>
       </div>
-      <div class="bento-card glass-note" data-reveal="fade">
+      <div class="bento-card glass-note">
         <div class="quote-mark">"</div>
         <p>The tart. Just — the tart. We ordered a second one before finishing the first.</p>
         <div class="who">— Renee A.</div>
@@ -368,6 +411,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/main.js"></script>
 <script src="js/booking.js"></script>

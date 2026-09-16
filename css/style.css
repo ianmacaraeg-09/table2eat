@@ -37,6 +37,9 @@
 
 *,*::before,*::after{ box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
+/* Lenis drives scrolling itself once active — native smooth-scroll would fight it */
+html.lenis, html.lenis body{ height:auto; }
+.lenis.lenis-smooth{ scroll-behavior:auto; }
 body{
   margin:0;
   background:var(--cream);
@@ -47,6 +50,20 @@ body{
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
 }
+
+/* quiet trailing cursor dot — desktop only, respects reduced-motion via JS gate */
+.cursor-trail{
+  position:fixed; top:0; left:0; width:14px; height:14px; border-radius:50%;
+  background:radial-gradient(circle, rgba(193,98,46,.5) 0%, rgba(193,98,46,0) 72%);
+  pointer-events:none; z-index:9500;
+  opacity:0; transition:opacity .5s ease;
+}
+.cursor-trail.visible{ opacity:1; }
+@media (max-width:900px){ .cursor-trail{ display:none; } }
+
+/* split-line heading reveal mask */
+.split-line{ display:block; overflow:hidden; }
+.split-line-inner{ display:block; will-change:transform; }
 img{ max-width:100%; display:block; }
 a{ color:inherit; text-decoration:none; }
 button{ font-family:inherit; cursor:pointer; }
@@ -283,6 +300,7 @@ section{ position:relative; }
   grid-template-columns:repeat(4, 1fr);
   grid-auto-rows:190px;
   gap:1.1rem;
+  perspective:1000px;
 }
 .bento-card{
   position:relative;
@@ -331,6 +349,51 @@ section{ position:relative; }
   margin-top:2.6rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;
 }
 
+/* ---------------- TASTING REEL (horizontal pinned scroll) ---------------- */
+.tasting-pin{
+  background:var(--cream-deep);
+  padding:clamp(5rem,10vh,8rem) 0;
+  overflow:hidden;
+}
+.tasting-head{
+  padding:0 var(--gutter);
+  max-width:640px;
+  margin:0 auto 3rem;
+}
+.tasting-viewport{ overflow:hidden; }
+.tasting-track{
+  display:flex;
+  gap:1.4rem;
+  padding:0 var(--gutter);
+  width:max-content;
+}
+.tasting-card{
+  position:relative;
+  flex:0 0 auto;
+  width:min(78vw,320px);
+  aspect-ratio:4/5;
+  border-radius:26px;
+  overflow:hidden;
+  box-shadow:var(--shadow-tight);
+}
+.tasting-card img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.tasting-card::before{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(22,33,26,0) 45%, rgba(22,33,26,.85) 100%);
+}
+.tasting-info{ position:absolute; left:0; right:0; bottom:0; padding:1.4rem; color:var(--paper); }
+.tasting-info .tag{ font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--terracotta-soft); }
+.tasting-info h3{ font-family:var(--font-display); font-weight:500; font-size:1.3rem; margin-top:.35rem; }
+.tasting-info .price{ font-size:.85rem; opacity:.85; margin-top:.2rem; }
+.tasting-card.note{
+  background:var(--paper);
+  display:flex; flex-direction:column; justify-content:center; padding:2rem;
+  border:1px solid var(--line-soft);
+}
+.tasting-card.note .quote-mark{ font-family:var(--font-display); font-size:2.6rem; color:var(--terracotta); line-height:1; }
+.tasting-card.note p{ font-family:var(--font-display); font-style:italic; font-size:1.15rem; color:var(--forest); margin-top:.5rem; line-height:1.45; }
+.tasting-card.note .who{ margin-top:1.2rem; font-size:.78rem; color:var(--ink-soft); letter-spacing:.05em; text-transform:uppercase; }
+
 /* ---------------- ABOUT / PINNED STORY ---------------- */
 .about{
   background:var(--cream-soft);
@@ -350,6 +413,7 @@ section{ position:relative; }
 }
 .about-copy .stat b{
   font-family:var(--font-display); font-size:2.4rem; font-weight:500; color:var(--forest); display:block;
+  font-variant-numeric:tabular-nums;
 }
 .about-copy .stat span{ font-size:.76rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
 .about-copy .story-track{ position:relative; min-height:9.5rem; margin-top:1.4rem; }
