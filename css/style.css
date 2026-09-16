@@ -57,6 +57,7 @@ body{
   background:radial-gradient(circle, rgba(193,98,46,.5) 0%, rgba(193,98,46,0) 72%);
   pointer-events:none; z-index:9500;
   opacity:0; transition:opacity .5s ease;
+  will-change:transform;
 }
 .cursor-trail.visible{ opacity:1; }
 @media (max-width:900px){ .cursor-trail{ display:none; } }
@@ -222,6 +223,7 @@ h1,h2,h3,h4,p{ margin:0; }
   border-radius:58% 42% 63% 37% / 45% 55% 45% 55%;
   overflow:hidden;
   box-shadow:var(--shadow-soft);
+  will-change:transform;
 }
 .hero-blob img{
   width:100%; height:100%; object-fit:cover;
@@ -266,7 +268,6 @@ h1,h2,h3,h4,p{ margin:0; }
 }
 .marquee-track{
   display:inline-flex; gap:3rem;
-  animation:marquee 26s linear infinite;
   will-change:transform;
 }
 .marquee-track span{
@@ -278,8 +279,6 @@ h1,h2,h3,h4,p{ margin:0; }
   color:var(--cream);
 }
 .marquee-track span::after{ content:'✦'; font-style:normal; color:var(--gold); font-size:1rem; }
-@keyframes marquee{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-
 /* ---------------- SECTION SCAFFOLD ---------------- */
 section{ position:relative; }
 .section-pad{ padding:clamp(5rem,10vh,8rem) 0; }
@@ -366,6 +365,7 @@ section{ position:relative; }
   gap:1.4rem;
   padding:0 var(--gutter);
   width:max-content;
+  will-change:transform;
 }
 .tasting-card{
   position:relative;

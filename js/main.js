@@ -110,10 +110,20 @@ function initHero() {
     .to('.hero-badge', { opacity: 1, y: 0, duration: .9 }, .85);
 
   /* idle life at rest — the dish keeps a slow breathing float once it has
-     settled in, so it doesn't just go still after the entrance finishes */
+     settled in, so it doesn't just go still after the entrance finishes.
+     Paused while the hero is off-screen so it isn't burning frame budget
+     (and competing with Lenis's own per-frame work) for the whole session. */
   gsap.delayedCall(2.3, () => {
-    gsap.to('.hero-blob', { y: -8, duration: 2.8, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-    gsap.to('.hero-blob', { rotation: 1.2, duration: 3.6, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: .3 });
+    const floatTl = gsap.timeline({ repeat: -1, yoyo: true })
+      .to('.hero-blob', { y: -8, duration: 2.8, ease: 'sine.inOut' }, 0)
+      .to('.hero-blob', { rotation: 1.2, duration: 2.8, ease: 'sine.inOut' }, 0);
+    ScrollTrigger.create({
+      trigger: '.hero', start: 'top bottom', end: 'bottom top',
+      onEnter: () => floatTl.play(),
+      onLeave: () => floatTl.pause(),
+      onEnterBack: () => floatTl.play(),
+      onLeaveBack: () => floatTl.pause(),
+    });
   });
 }
 
@@ -298,11 +308,15 @@ function initCountUps() {
 function initMarquee() {
   const track = qs('#marqueeTrack');
   if (!track || reduceMotion) return;
-  const baseTween = gsap.to(track, { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
+  const baseTween = gsap.to(track, { xPercent: -50, duration: 22, ease: 'none', repeat: -1, paused: true });
   ScrollTrigger.create({
     trigger: '.marquee-strip',
     start: 'top bottom',
     end: 'bottom top',
+    onEnter: () => baseTween.play(),
+    onLeave: () => baseTween.pause(),
+    onEnterBack: () => baseTween.play(),
+    onLeaveBack: () => baseTween.pause(),
     onUpdate(self) {
       const vel = self.getVelocity ? self.getVelocity() : 0;
       const speed = gsap.utils.clamp(0.4, 3, 1 + Math.abs(vel) / 2000);
