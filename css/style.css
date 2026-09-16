@@ -584,7 +584,7 @@ footer{
   background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:1.2rem;
   box-shadow:var(--shadow-tight);
 }
-#qrcode-canvas{ display:block; width:170px; height:auto; border-radius:10px; }
+#qrcode-canvas{ display:block; width:240px; height:auto; border-radius:14px; }
 .pay-amount{ font-family:var(--font-display); font-size:2.4rem; color:var(--forest); }
 .pay-ref{ font-size:.8rem; color:var(--ink-soft); margin-top:.3rem; }
 .pay-instructions{ text-align:left; max-width:280px; }
