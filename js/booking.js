@@ -207,7 +207,7 @@
     if (file) handleFile(file);
   });
   removeBtn.addEventListener('click', () => {
-    state.receiptDataUrl = null; state.receiptName = null;
+    state.receiptDataUrl = null; state.receiptName = null; state.receiptBlob = null;
     uploadInput.value = '';
     uploadPrev.classList.remove('show');
   });
@@ -221,14 +221,15 @@
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        // downscale to keep localStorage lean
-        const maxW = 800;
+        // downscale before upload — faster for the customer, smaller in Storage
+        const maxW = 900;
         const scale = Math.min(1, maxW / img.width);
         const canvas = document.createElement('canvas');
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', .82);
+        const dataUrl = canvas.toDataURL('image/jpeg', .85);
+        canvas.toBlob((blob) => { state.receiptBlob = blob; }, 'image/jpeg', .85);
         state.receiptDataUrl = dataUrl;
         state.receiptName = file.name;
         uploadImg.src = dataUrl;
@@ -246,37 +247,56 @@
   }
 
   /* ---------------- step 3 -> submit ---------------- */
-  document.getElementById('submitBookingBtn').addEventListener('click', () => {
-    if (!state.receiptDataUrl) { showUploadError('Please upload your payment screenshot before submitting.'); return; }
+  const submitBtn = document.getElementById('submitBookingBtn');
+  submitBtn.addEventListener('click', async () => {
+    if (!state.receiptBlob) { showUploadError('Please upload your payment screenshot before submitting.'); return; }
 
-    const booking = {
-      id: 'bk_' + Date.now(),
-      ref: state.ref,
-      ...state.details,
-      fee: state.fee,
-      receiptDataUrl: state.receiptDataUrl,
-      receiptName: state.receiptName,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
+    uploadError.style.display = 'none';
+    submitBtn.disabled = true;
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Submitting…';
 
-    const KEY = 'table2eat_bookings';
-    const list = JSON.parse(localStorage.getItem(KEY) || '[]');
-    list.unshift(booking);
-    localStorage.setItem(KEY, JSON.stringify(list));
+    try {
+      const receiptPath = `${state.ref}-${Date.now()}.jpg`;
+      const { error: uploadErr } = await sb.storage
+        .from('receipts')
+        .upload(receiptPath, state.receiptBlob, { contentType: 'image/jpeg' });
+      if (uploadErr) throw uploadErr;
 
-    document.getElementById('confirmRef').textContent = state.ref;
-    showStep(4);
-
-    // draw the checkmark
-    if (reduceMotion) {
-      gsap.set('#checkPath', { strokeDashoffset: 0 });
-      gsap.set('.confirm-check', { scale: 1, opacity: 1 });
-    } else {
-      requestAnimationFrame(() => {
-        gsap.fromTo('#checkPath', { strokeDashoffset: 48 }, { strokeDashoffset: 0, duration: .7, delay: .25, ease: 'power2.out' });
-        gsap.fromTo('.confirm-check', { scale: .5, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)' });
+      const { error: insertErr } = await sb.from('bookings').insert({
+        ref: state.ref,
+        name: state.details.name,
+        phone: state.details.phone,
+        email: state.details.email,
+        date: state.details.date,
+        time: state.details.time,
+        party: state.details.party,
+        notes: state.details.notes || null,
+        fee: state.fee,
+        receipt_path: receiptPath,
+        status: 'pending',
       });
+      if (insertErr) throw insertErr;
+
+      document.getElementById('confirmRef').textContent = state.ref;
+      showStep(4);
+
+      // draw the checkmark
+      if (reduceMotion) {
+        gsap.set('#checkPath', { strokeDashoffset: 0 });
+        gsap.set('.confirm-check', { scale: 1, opacity: 1 });
+      } else {
+        requestAnimationFrame(() => {
+          gsap.fromTo('#checkPath', { strokeDashoffset: 48 }, { strokeDashoffset: 0, duration: .7, delay: .25, ease: 'power2.out' });
+          gsap.fromTo('.confirm-check', { scale: .5, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)' });
+        });
+      }
+    } catch (err) {
+      console.error('Booking submission failed:', err);
+      showUploadError("Something went wrong submitting your booking — please try again.");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
     }
   });
 

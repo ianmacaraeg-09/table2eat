@@ -1,70 +1,16 @@
-/* Table2Eat — Staff Portal: auth gate, bookings tracker, inventory manager */
+/* Table2Eat — Staff Portal: Supabase Auth gate, bookings tracker, inventory manager */
 (function () {
-  const BOOKINGS_KEY = 'table2eat_bookings';
-  const INVENTORY_KEY = 'table2eat_inventory';
-  const SESSION_KEY = 't2e_admin_session';
-  const CREDENTIALS = { user: 'admin', pass: 'table2eat' };
-
-  /* ================= SEED DATA (first run only) ================= */
-  function seedIfEmpty() {
-    if (!localStorage.getItem(BOOKINGS_KEY)) {
-      const sample = [
-        {
-          id: 'bk_seed1', ref: 'T2E-102934', name: 'Renee Alvarado', phone: '0917 200 3344',
-          email: 'renee.a@example.com', date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-          time: '7:00 PM', party: 2, notes: 'Anniversary dinner, window seat if possible.',
-          fee: 300, receiptDataUrl: SAMPLE_RECEIPT, receiptName: 'gcash_receipt.jpg',
-          status: 'pending', createdAt: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: 'bk_seed2', ref: 'T2E-559201', name: 'Marco Tan', phone: '0928 774 1120',
-          email: 'marco.tan@example.com', date: new Date().toISOString().split('T')[0],
-          time: '12:00 PM', party: 4, notes: '',
-          fee: 400, receiptDataUrl: SAMPLE_RECEIPT, receiptName: 'maya_receipt.jpg',
-          status: 'confirmed', createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          id: 'bk_seed3', ref: 'T2E-778345', name: 'Dani Perez', phone: '0906 552 8890',
-          email: 'dani.p@example.com', date: new Date().toISOString().split('T')[0],
-          time: '6:00 PM', party: 6, notes: 'Celebrating a promotion 🎉',
-          fee: 500, receiptDataUrl: SAMPLE_RECEIPT, receiptName: 'gcash_receipt.jpg',
-          status: 'declined', createdAt: new Date(Date.now() - 7200000).toISOString(),
-        },
-      ];
-      localStorage.setItem(BOOKINGS_KEY, JSON.stringify(sample));
-    }
-    if (!localStorage.getItem(INVENTORY_KEY)) {
-      const sample = [
-        { id: 'iv1', name: 'Salmon Fillet', category: 'Meat & Seafood', unit: 'kg', qty: 8, reorder: 5 },
-        { id: 'iv2', name: 'Duck Breast', category: 'Meat & Seafood', unit: 'pcs', qty: 3, reorder: 6 },
-        { id: 'iv3', name: 'Baby Spinach', category: 'Produce', unit: 'kg', qty: 2, reorder: 3 },
-        { id: 'iv4', name: 'Heirloom Tomatoes', category: 'Produce', unit: 'kg', qty: 0, reorder: 4 },
-        { id: 'iv5', name: 'Tagliatelle Pasta', category: 'Dry Goods', unit: 'kg', qty: 12, reorder: 5 },
-        { id: 'iv6', name: 'Heavy Cream', category: 'Dairy', unit: 'L', qty: 6, reorder: 4 },
-        { id: 'iv7', name: 'Sparkling Water', category: 'Beverage', unit: 'bottles', qty: 40, reorder: 20 },
-        { id: 'iv8', name: 'House Red Wine', category: 'Bar', unit: 'bottles', qty: 5, reorder: 8 },
-      ];
-      localStorage.setItem(INVENTORY_KEY, JSON.stringify(sample));
-    }
-  }
-
-  const SAMPLE_RECEIPT_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='560'><rect width='400' height='560' fill='#253626'/><rect x='30' y='40' width='340' height='480' rx='16' fill='#FFFDF7'/><text x='200' y='100' font-family='Georgia,serif' font-size='26' text-anchor='middle' fill='#253626'>GCash</text><text x='200' y='150' font-family='Arial' font-size='14' text-anchor='middle' fill='#4A4234'>Payment Successful</text><text x='200' y='230' font-family='Georgia,serif' font-size='40' text-anchor='middle' fill='#253626'>P400.00</text><text x='200' y='300' font-family='Arial' font-size='12' text-anchor='middle' fill='#4A4234'>To: TABLE2EAT BISTRO</text><text x='200' y='324' font-family='Arial' font-size='12' text-anchor='middle' fill='#4A4234'>Ref No. 7729 4831 0192</text><line x1='60' y1='370' x2='340' y2='370' stroke='#E4D8BE' stroke-width='2'/><text x='200' y='400' font-family='Arial' font-size='11' text-anchor='middle' fill='#8A9A78'>Sandbox demo receipt — not a real transaction</text></svg>`;
-  const SAMPLE_RECEIPT = 'data:image/svg+xml;utf8,' + encodeURIComponent(SAMPLE_RECEIPT_SVG);
-
   /* ================= AUTH ================= */
   const loginScreen = document.getElementById('loginScreen');
   const dashboardShell = document.getElementById('dashboardShell');
   const loginForm = document.getElementById('loginForm');
   const loginError = document.getElementById('loginError');
 
-  function isLoggedIn() { return sessionStorage.getItem(SESSION_KEY) === '1'; }
-
-  function showDashboard() {
+  async function showDashboard(email) {
     loginScreen.style.display = 'none';
     dashboardShell.style.display = 'flex';
-    seedIfEmpty();
-    renderBookings();
-    renderInventory();
+    document.getElementById('sidebarUser').textContent = email || 'Staff';
+    await Promise.all([renderBookings(), renderInventory()]);
   }
 
   function showLogin() {
@@ -72,21 +18,28 @@
     dashboardShell.style.display = 'none';
   }
 
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const u = document.getElementById('login-user').value.trim();
-    const p = document.getElementById('login-pass').value;
-    if (u === CREDENTIALS.user && p === CREDENTIALS.pass) {
-      sessionStorage.setItem(SESSION_KEY, '1');
-      loginError.classList.remove('show');
-      showDashboard();
-    } else {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-pass').value;
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+    loginError.classList.remove('show');
+    submitBtn.disabled = true;
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    submitBtn.disabled = false;
+
+    if (error) {
+      loginError.textContent = error.message || 'Incorrect email or password.';
       loginError.classList.add('show');
+      return;
     }
+    await showDashboard(data.user?.email);
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
     showLogin();
   });
 
@@ -113,10 +66,27 @@
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-  function getBookings() { return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]'); }
-  function setBookings(list) { localStorage.setItem(BOOKINGS_KEY, JSON.stringify(list)); }
-  function getInventory() { return JSON.parse(localStorage.getItem(INVENTORY_KEY) || '[]'); }
-  function setInventory(list) { localStorage.setItem(INVENTORY_KEY, JSON.stringify(list)); }
+
+  const receiptUrlCache = new Map();
+  async function getReceiptUrl(path) {
+    if (!path) return '';
+    if (receiptUrlCache.has(path)) return receiptUrlCache.get(path);
+    const { data, error } = await sb.storage.from('receipts').createSignedUrl(path, 3600);
+    const url = error ? '' : data.signedUrl;
+    receiptUrlCache.set(path, url);
+    return url;
+  }
+
+  async function getBookings() {
+    const { data, error } = await sb.from('bookings').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Failed to load bookings:', error); return []; }
+    return data;
+  }
+  async function getInventory() {
+    const { data, error } = await sb.from('inventory').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Failed to load inventory:', error); return []; }
+    return data;
+  }
 
   /* ================= BOOKINGS VIEW ================= */
   let bookingFilter = 'all';
@@ -129,8 +99,8 @@
     renderBookings();
   }));
 
-  function renderBookings() {
-    const all = getBookings();
+  async function renderBookings() {
+    const all = await getBookings();
     const list = bookingFilter === 'all' ? all : all.filter(b => b.status === bookingFilter);
 
     document.getElementById('statTotal').textContent = all.length;
@@ -143,7 +113,9 @@
       return;
     }
 
-    bookingsTbody.innerHTML = list.map(b => `
+    const thumbUrls = await Promise.all(list.map(b => getReceiptUrl(b.receipt_path)));
+
+    bookingsTbody.innerHTML = list.map((b, i) => `
       <tr data-id="${b.id}">
         <td class="cell-ref">${b.ref}</td>
         <td>${escapeHtml(b.name)}<div class="cell-sub">${escapeHtml(b.phone)}</div></td>
@@ -151,7 +123,7 @@
         <td>${b.party} guest${b.party>1?'s':''}</td>
         <td>${money(b.fee)}</td>
         <td>
-          <button class="thumb-btn" data-view-receipt="${b.id}"><img src="${b.receiptDataUrl}" alt="Receipt for ${b.ref}"></button>
+          <button class="thumb-btn" data-view-receipt="${b.id}"><img src="${thumbUrls[i]}" alt="Receipt for ${b.ref}"></button>
         </td>
         <td><span class="badge ${b.status}">${b.status}</span></td>
         <td>
@@ -173,21 +145,20 @@
     if (actionBtn) setBookingStatus(actionBtn.dataset.id, actionBtn.dataset.action === 'confirm' ? 'confirmed' : 'declined');
   });
 
-  function setBookingStatus(id, status) {
-    const list = getBookings();
-    const b = list.find(x => x.id === id);
-    if (b) b.status = status;
-    setBookings(list);
-    renderBookings();
+  async function setBookingStatus(id, status) {
+    const { error } = await sb.from('bookings').update({ status }).eq('id', id);
+    if (error) { console.error('Failed to update booking:', error); return; }
+    await renderBookings();
     closeModal('receiptModal');
   }
 
   /* ---- receipt modal ---- */
   const receiptModal = document.getElementById('receiptModal');
-  function openReceiptModal(id) {
-    const b = getBookings().find(x => x.id === id);
+  async function openReceiptModal(id) {
+    const all = await getBookings();
+    const b = all.find(x => x.id === id);
     if (!b) return;
-    document.getElementById('receiptModalImg').src = b.receiptDataUrl;
+    document.getElementById('receiptModalImg').src = await getReceiptUrl(b.receipt_path);
     document.getElementById('receiptModalMeta').innerHTML = `
       <strong>${escapeHtml(b.name)}</strong> — ${b.ref}<br>
       ${prettyDate(b.date)}, ${b.time} · ${b.party} guest${b.party>1?'s':''} · ${money(b.fee)}
@@ -215,8 +186,8 @@
   }
   function invStatusLabel(s) { return s === 'out' ? 'Out of Stock' : s === 'low' ? 'Low Stock' : 'In Stock'; }
 
-  function renderInventory() {
-    const items = getInventory();
+  async function renderInventory() {
+    const items = await getInventory();
     document.getElementById('invTotal').textContent = items.length;
     document.getElementById('invLow').textContent = items.filter(i => invStatus(i) === 'low').length;
     document.getElementById('invOut').textContent = items.filter(i => invStatus(i) === 'out').length;
@@ -246,14 +217,15 @@
     }).join('');
   }
 
-  inventoryTbody.addEventListener('click', (e) => {
+  inventoryTbody.addEventListener('click', async (e) => {
     const editBtn = e.target.closest('[data-edit]');
     const delBtn = e.target.closest('[data-delete]');
     if (editBtn) openItemModal(editBtn.dataset.edit);
     if (delBtn) {
       if (confirm('Remove this item from inventory?')) {
-        setInventory(getInventory().filter(i => i.id !== delBtn.dataset.delete));
-        renderInventory();
+        const { error } = await sb.from('inventory').delete().eq('id', delBtn.dataset.delete);
+        if (error) { console.error('Failed to delete item:', error); return; }
+        await renderInventory();
       }
     }
   });
@@ -264,8 +236,8 @@
 
   document.getElementById('addItemBtn').addEventListener('click', () => openItemModal(null));
 
-  function openItemModal(id) {
-    const item = id ? getInventory().find(i => i.id === id) : null;
+  async function openItemModal(id) {
+    const item = id ? (await getInventory()).find(i => i.id === id) : null;
     document.getElementById('itemModalTitle').textContent = item ? 'Edit Item' : 'Add Item';
     document.getElementById('item-id').value = item ? item.id : '';
     document.getElementById('item-name').value = item ? item.name : '';
@@ -276,7 +248,7 @@
     openModal('itemModal');
   }
 
-  itemForm.addEventListener('submit', (e) => {
+  itemForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('item-id').value;
     const payload = {
@@ -286,15 +258,11 @@
       qty: Number(document.getElementById('item-qty').value),
       reorder: Number(document.getElementById('item-reorder').value),
     };
-    const list = getInventory();
-    if (id) {
-      const item = list.find(i => i.id === id);
-      Object.assign(item, payload);
-    } else {
-      list.unshift({ id: 'iv_' + Date.now(), ...payload });
-    }
-    setInventory(list);
-    renderInventory();
+    const { error } = id
+      ? await sb.from('inventory').update(payload).eq('id', id)
+      : await sb.from('inventory').insert(payload);
+    if (error) { console.error('Failed to save item:', error); return; }
+    await renderInventory();
     closeModal('itemModal');
   });
 
@@ -309,5 +277,8 @@
   });
 
   /* ================= INIT ================= */
-  if (isLoggedIn()) showDashboard(); else showLogin();
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) await showDashboard(session.user.email); else showLogin();
+  })();
 })();
