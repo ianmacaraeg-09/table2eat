@@ -78,6 +78,10 @@
     const target = btn.dataset.view;
     views.forEach(v => v.classList.toggle('active', v.id === 'view-' + target));
     document.getElementById('sidebar').classList.remove('open');
+    // Hora belongs on the Bookings page only - it's appended to <body>
+    // by initAgentWidget, outside the .view sections, so switching views
+    // alone doesn't hide it; toggle it explicitly here.
+    document.querySelector('.agent-widget')?.toggleAttribute('hidden', target !== 'bookings');
   }));
 
   ['menuBtn', 'menuBtn2'].forEach(id => {
