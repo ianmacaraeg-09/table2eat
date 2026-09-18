@@ -90,6 +90,35 @@ body{ background:var(--cream-soft); }
 }
 .filter-tabs button.active{ background:var(--forest); color:var(--paper); }
 
+.toolbar-controls{ display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; }
+.search-box{ position:relative; }
+.search-icon{
+  position:absolute; left:.9rem; top:50%; transform:translateY(-50%) rotate(45deg);
+  font-size:.85rem; color:var(--ink-soft); pointer-events:none;
+}
+.search-box input{
+  width:240px; max-width:60vw; padding:.62rem 1rem .62rem 2.2rem;
+  border-radius:100px; border:1px solid var(--line);
+  background:var(--paper); font-family:var(--font-body); font-size:.85rem; color:var(--ink);
+  transition:border-color .3s ease, box-shadow .3s ease;
+}
+.search-box input:focus{ outline:none; border-color:var(--forest); box-shadow:0 0 0 3px rgba(37,54,38,.12); }
+.search-box input::placeholder{ color:var(--ink-soft); opacity:.65; }
+#bookingDateRange{
+  padding:.62rem 2.2rem .62rem 1.1rem; border-radius:100px; border:1px solid var(--line);
+  background:var(--paper) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="%234A4234" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 7.5l4.5 4.5 4.5-4.5"/></svg>') no-repeat right .85rem center / 12px;
+  background-color:var(--paper);
+  font-family:var(--font-body); font-size:.85rem; font-weight:600; color:var(--ink);
+  appearance:none; cursor:pointer; transition:border-color .3s ease;
+}
+#bookingDateRange:focus{ outline:none; border-color:var(--forest); }
+
+@media (max-width:640px){
+  .toolbar-controls{ width:100%; }
+  .search-box{ flex:1; }
+  .search-box input{ width:100%; max-width:none; }
+}
+
 /* ---------------- TABLE CARD ---------------- */
 .table-card{
   background:var(--paper); border-radius:22px; border:1px solid var(--line-soft);

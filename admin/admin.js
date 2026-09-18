@@ -90,7 +90,11 @@
 
   /* ================= BOOKINGS VIEW ================= */
   let bookingFilter = 'all';
+  let bookingSearch = '';
+  let bookingDateRange = 'all';
   const bookingsTbody = document.getElementById('bookingsTbody');
+  const bookingSearchInput = document.getElementById('bookingSearch');
+  const bookingDateRangeSelect = document.getElementById('bookingDateRange');
 
   document.querySelectorAll('#bookingFilters button').forEach(btn => btn.addEventListener('click', () => {
     document.querySelectorAll('#bookingFilters button').forEach(b => b.classList.remove('active'));
@@ -99,11 +103,56 @@
     renderBookings();
   }));
 
+  let searchDebounce;
+  bookingSearchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      bookingSearch = bookingSearchInput.value.trim().toLowerCase();
+      renderBookings();
+    }, 200);
+  });
+  bookingDateRangeSelect.addEventListener('change', () => {
+    bookingDateRange = bookingDateRangeSelect.value;
+    renderBookings();
+  });
+
+  function matchesSearch(b, q) {
+    if (!q) return true;
+    return (b.ref || '').toLowerCase().includes(q)
+      || (b.name || '').toLowerCase().includes(q)
+      || (b.phone || '').toLowerCase().includes(q);
+  }
+
+  function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+  function matchesDateRange(dateStr, range) {
+    if (range === 'all' || !dateStr) return true;
+    const d = startOfDay(new Date(dateStr + 'T00:00:00'));
+    const today = startOfDay(new Date());
+    if (range === 'today') return d.getTime() === today.getTime();
+    if (range === 'tomorrow') {
+      const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+      return d.getTime() === tomorrow.getTime();
+    }
+    if (range === 'week') {
+      const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay());
+      const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+      return d >= weekStart && d <= weekEnd;
+    }
+    if (range === 'month') return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth();
+    if (range === 'year') return d.getFullYear() === today.getFullYear();
+    return true;
+  }
+
   const statusLabels = { pending: 'pending', confirmed: 'confirmed', declined: 'declined', awaiting_payment: 'awaiting payment', payment_failed: 'payment failed' };
+  const dateRangeLabels = { today: 'today\'s', tomorrow: 'tomorrow\'s', week: 'this week\'s', month: 'this month\'s', year: 'this year\'s' };
 
   async function renderBookings() {
     const all = await getBookings();
-    const list = bookingFilter === 'all' ? all : all.filter(b => b.status === bookingFilter);
+    const list = all
+      .filter(b => bookingFilter === 'all' || b.status === bookingFilter)
+      .filter(b => matchesSearch(b, bookingSearch))
+      .filter(b => matchesDateRange(b.date, bookingDateRange));
 
     document.getElementById('statTotal').textContent = all.length;
     document.getElementById('statPending').textContent = all.filter(b => b.status === 'pending').length;
@@ -111,7 +160,10 @@
     document.getElementById('statRevenue').textContent = money(all.filter(b => b.status === 'confirmed').reduce((s,b) => s + Number(b.fee||0), 0));
 
     if (!list.length) {
-      bookingsTbody.innerHTML = `<tr class="empty-row"><td colspan="8">No ${bookingFilter === 'all' ? '' : statusLabels[bookingFilter] + ' '}bookings yet.</td></tr>`;
+      const statusPart = bookingFilter === 'all' ? '' : statusLabels[bookingFilter] + ' ';
+      const datePart = dateRangeLabels[bookingDateRange] ? dateRangeLabels[bookingDateRange] + ' ' : '';
+      const matchPart = bookingSearch ? ` matching "${escapeHtml(bookingSearchInput.value.trim())}"` : '';
+      bookingsTbody.innerHTML = `<tr class="empty-row"><td colspan="8">No ${datePart}${statusPart}bookings${matchPart}.</td></tr>`;
       return;
     }
 
