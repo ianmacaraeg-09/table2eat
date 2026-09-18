@@ -112,6 +112,14 @@ function initAgentWidget(config) {
 
     var typing = addMessage('assistant typing', '<span></span><span></span><span></span>');
 
+    // Some tool calls (a receipt review does a Supabase fetch AND a vision
+    // API call in one request) can genuinely take a while, especially
+    // under provider queueing - a generous timeout so a slow-but-working
+    // request doesn't get mistaken for a hang, while still resolving
+    // eventually instead of leaving the UI stuck forever.
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 60000);
+
     try {
       var payload = { message: text, session_id: sessionId };
       if (surface) payload.surface = surface;
@@ -122,21 +130,39 @@ function initAgentWidget(config) {
       var res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       var data = await res.json();
       typing.remove();
-      if (!res.ok) throw new Error(data.error || ('Request failed (' + res.status + ')'));
+      if (!res.ok) throw { httpError: true, message: data.error || ('Request failed (' + res.status + ')') };
       sessionId = data.session_id;
       try { sessionStorage.setItem(sessionKey, sessionId); } catch (e) {}
       addMessage('assistant', renderReplyText(data.reply));
       dot.classList.add('live');
       statusEl.textContent = 'Connected';
     } catch (err) {
+      clearTimeout(timeoutId);
       typing.remove();
-      addText('error', 'Could not reach ' + agentName + ' — is the backend running at ' + endpoint + '?');
-      dot.classList.remove('live');
-      statusEl.textContent = 'Offline';
+      // Three genuinely different failures, shown differently rather than
+      // one generic "is it down?" message that made a real backend error
+      // (or a slow-but-alive request) indistinguishable from an actual crash:
+      if (err && err.httpError) {
+        // A real response came back with a real error message - show it,
+        // don't discard it. The backend is clearly reachable in this case.
+        addText('error', String(err.message));
+        dot.classList.add('live');
+        statusEl.textContent = 'Connected';
+      } else if (err && err.name === 'AbortError') {
+        addText('error', agentName + ' is taking longer than usual to respond (60s) - it may still finish; try asking again in a moment.');
+        dot.classList.add('live');
+        statusEl.textContent = 'Slow';
+      } else {
+        addText('error', 'Could not reach ' + agentName + ' — is the backend running at ' + endpoint + '?');
+        dot.classList.remove('live');
+        statusEl.textContent = 'Offline';
+      }
     }
   });
 }
