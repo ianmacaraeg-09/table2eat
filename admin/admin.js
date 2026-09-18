@@ -6,11 +6,37 @@
   const loginForm = document.getElementById('loginForm');
   const loginError = document.getElementById('loginError');
 
+  /* ================= HORA WIDGET ================= */
+  /* getAccessToken() has to be synchronous (the widget calls it inline
+     while building each request), but sb.auth.getSession() is async -
+     so the current token is cached here and kept fresh via
+     onAuthStateChange rather than re-awaited on every message. */
+  let horaAccessToken = null;
+  sb.auth.onAuthStateChange((_event, session) => {
+    horaAccessToken = session?.access_token || null;
+  });
+
+  let horaWidgetInitialized = false;
+  function initHoraWidgetOnce() {
+    if (horaWidgetInitialized) return;
+    horaWidgetInitialized = true;
+    initAgentWidget({
+      agentName: 'Hora',
+      // Local dev endpoint for now - swap for the real tunnel URL once
+      // Hora's Table2Eat instance is actually hosted somewhere reachable.
+      endpoint: 'http://127.0.0.1:8813/chat',
+      enabled: true,
+      surface: 'admin',
+      getAccessToken: () => horaAccessToken
+    });
+  }
+
   async function showDashboard(email) {
     loginScreen.style.display = 'none';
     dashboardShell.style.display = 'flex';
     document.getElementById('sidebarUser').textContent = email || 'Staff';
     await Promise.all([renderBookings(), renderInventory()]);
+    initHoraWidgetOnce();
   }
 
   function showLogin() {
@@ -135,7 +161,8 @@
       return d.getTime() === tomorrow.getTime();
     }
     if (range === 'week') {
-      const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay());
+      // Monday-start week, to match Hora's own _date_range_bounds convention.
+      const weekStart = new Date(today); weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
       const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
       return d >= weekStart && d <= weekEnd;
     }
