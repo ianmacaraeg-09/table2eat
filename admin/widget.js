@@ -113,12 +113,15 @@ function initAgentWidget(config) {
     var typing = addMessage('assistant typing', '<span></span><span></span><span></span>');
 
     // Some tool calls (a receipt review does a Supabase fetch AND a vision
-    // API call in one request) can genuinely take a while, especially
-    // under provider queueing - a generous timeout so a slow-but-working
-    // request doesn't get mistaken for a hang, while still resolving
-    // eventually instead of leaving the UI stuck forever.
+    // API call; a batch review of every pending booking does that once per
+    // booking, server-side, in one request - measured ~12s/booking for
+    // real) can genuinely take a while, especially under provider
+    // queueing - a generous timeout so a slow-but-working request doesn't
+    // get mistaken for a hang, while still resolving eventually instead of
+    // leaving the UI stuck forever. 3 minutes comfortably covers a
+    // realistic batch (~15 pending bookings) for a business this size.
     var controller = new AbortController();
-    var timeoutId = setTimeout(function () { controller.abort(); }, 60000);
+    var timeoutId = setTimeout(function () { controller.abort(); }, 180000);
 
     try {
       var payload = { message: text, session_id: sessionId };
@@ -155,7 +158,7 @@ function initAgentWidget(config) {
         dot.classList.add('live');
         statusEl.textContent = 'Connected';
       } else if (err && err.name === 'AbortError') {
-        addText('error', agentName + ' is taking longer than usual to respond (60s) - it may still finish; try asking again in a moment.');
+        addText('error', agentName + ' is taking longer than usual to respond (3 min+) - a large batch review can take a while; it may still finish, try asking again in a moment.');
         dot.classList.add('live');
         statusEl.textContent = 'Slow';
       } else {
