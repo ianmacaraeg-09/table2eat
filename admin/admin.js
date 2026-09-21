@@ -6,28 +6,55 @@
   const loginForm = document.getElementById('loginForm');
   const loginError = document.getElementById('loginError');
 
-  /* ================= HORA WIDGET ================= */
+  /* ================= AGENT WIDGETS (Hora, Argo) ================= */
   /* getAccessToken() has to be synchronous (the widget calls it inline
      while building each request), but sb.auth.getSession() is async -
      so the current token is cached here and kept fresh via
-     onAuthStateChange rather than re-awaited on every message. */
-  let horaAccessToken = null;
+     onAuthStateChange rather than re-awaited on every message. One
+     shared token for both agents - same Supabase session either way. */
+  let staffAccessToken = null;
   sb.auth.onAuthStateChange((_event, session) => {
-    horaAccessToken = session?.access_token || null;
+    staffAccessToken = session?.access_token || null;
   });
+
+  // Each agent belongs on exactly one view. initAgentWidget returns its
+  // root element (appended to <body>, outside the .view sections), kept
+  // here so the nav handler below can show/hide the right one per tab
+  // without needing to guess which widget is "the" .agent-widget.
+  const agentWidgetsByView = {};
 
   let horaWidgetInitialized = false;
   function initHoraWidgetOnce() {
     if (horaWidgetInitialized) return;
     horaWidgetInitialized = true;
-    initAgentWidget({
+    agentWidgetsByView.bookings = initAgentWidget({
       agentName: 'Hora',
       // Local dev endpoint for now - swap for the real tunnel URL once
       // Hora's Table2Eat instance is actually hosted somewhere reachable.
       endpoint: 'http://127.0.0.1:8813/chat',
       enabled: true,
       surface: 'admin',
-      getAccessToken: () => horaAccessToken
+      greeting: "Hi, I'm Hora. Ask me about bookings, revenue, availability, or say \"check pending receipts.\"",
+      getAccessToken: () => staffAccessToken
+    });
+  }
+
+  let argoWidgetInitialized = false;
+  function initArgoWidgetOnce() {
+    if (argoWidgetInitialized) return;
+    argoWidgetInitialized = true;
+    agentWidgetsByView.inventory = initAgentWidget({
+      agentName: 'Argo',
+      // Local dev endpoint for now - swap for the real tunnel URL once
+      // Argo's Table2Eat instance is actually hosted somewhere reachable.
+      endpoint: 'http://127.0.0.1:8815/chat',
+      enabled: true,
+      surface: 'admin',
+      avatar: 'blob',
+      blobPalette: ['#4a7fe0', '#7268d6', '#9b5ec4', '#6b9bab', '#4fd0a0'],
+      tts: true,
+      greeting: "Hi, I'm Argo. Ask me about stock levels, reorder needs, or say \"what's running low?\"",
+      getAccessToken: () => staffAccessToken
     });
   }
 
@@ -37,6 +64,7 @@
     document.getElementById('sidebarUser').textContent = email || 'Staff';
     await Promise.all([renderBookings(), renderInventory()]);
     initHoraWidgetOnce();
+    initArgoWidgetOnce();
   }
 
   function showLogin() {
@@ -78,10 +106,14 @@
     const target = btn.dataset.view;
     views.forEach(v => v.classList.toggle('active', v.id === 'view-' + target));
     document.getElementById('sidebar').classList.remove('open');
-    // Hora belongs on the Bookings page only - it's appended to <body>
-    // by initAgentWidget, outside the .view sections, so switching views
-    // alone doesn't hide it; toggle it explicitly here.
-    document.querySelector('.agent-widget')?.toggleAttribute('hidden', target !== 'bookings');
+    // Each agent widget belongs on exactly one view - they're appended to
+    // <body> by initAgentWidget, outside the .view sections, so switching
+    // views alone doesn't hide them; toggle each explicitly here. Extends
+    // to any future agent added the same way (store its root in
+    // agentWidgetsByView, keyed by its view name).
+    Object.entries(agentWidgetsByView).forEach(([view, widgetRoot]) => {
+      widgetRoot?.toggleAttribute('hidden', target !== view);
+    });
   }));
 
   ['menuBtn', 'menuBtn2'].forEach(id => {
