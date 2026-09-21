@@ -58,6 +58,18 @@
     });
   }
 
+  // Shared by the nav click handler and by showDashboard right after both
+  // widgets are created - a widget's hidden/shown state has to be set
+  // explicitly the moment it exists, not just on the next tab click,
+  // otherwise every agent widget starts visible together regardless of
+  // which view is actually active (real bug: Argo appeared stacked on
+  // top of Hora on first login until the first nav click).
+  function syncAgentWidgetVisibility(activeView) {
+    Object.entries(agentWidgetsByView).forEach(([view, widgetRoot]) => {
+      widgetRoot?.toggleAttribute('hidden', activeView !== view);
+    });
+  }
+
   async function showDashboard(email) {
     loginScreen.style.display = 'none';
     dashboardShell.style.display = 'flex';
@@ -65,6 +77,8 @@
     await Promise.all([renderBookings(), renderInventory()]);
     initHoraWidgetOnce();
     initArgoWidgetOnce();
+    const activeNav = document.querySelector('.sidebar-nav .nav-item.active');
+    syncAgentWidgetVisibility(activeNav ? activeNav.dataset.view : 'bookings');
   }
 
   function showLogin() {
@@ -108,12 +122,8 @@
     document.getElementById('sidebar').classList.remove('open');
     // Each agent widget belongs on exactly one view - they're appended to
     // <body> by initAgentWidget, outside the .view sections, so switching
-    // views alone doesn't hide them; toggle each explicitly here. Extends
-    // to any future agent added the same way (store its root in
-    // agentWidgetsByView, keyed by its view name).
-    Object.entries(agentWidgetsByView).forEach(([view, widgetRoot]) => {
-      widgetRoot?.toggleAttribute('hidden', target !== view);
-    });
+    // views alone doesn't hide them; toggle each explicitly here.
+    syncAgentWidgetVisibility(target);
   }));
 
   ['menuBtn', 'menuBtn2'].forEach(id => {
