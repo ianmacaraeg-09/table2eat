@@ -34,6 +34,9 @@
       endpoint: 'http://127.0.0.1:8813/chat',
       enabled: true,
       surface: 'admin',
+      avatar: 'blob',
+      blobPalette: ['#e0932e', '#eda93c', '#f2bc4c', '#f5d17a', '#f8e5ab'],
+      tts: true,
       greeting: "Hi, I'm Hora. Ask me about bookings, revenue, availability, or say \"check pending receipts.\"",
       getAccessToken: () => staffAccessToken
     });
