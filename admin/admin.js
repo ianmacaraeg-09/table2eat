@@ -39,6 +39,19 @@
       avatar: 'blob',
       blobPalette: ['#e0932e', '#eda93c', '#f2bc4c', '#f5d17a', '#f8e5ab'],
       tts: true,
+      // Cross-agent handoff targets reachable from the admin surface (see
+      // shared/handoff.py's STAFF_FACING_AGENTS) that are actually
+      // provisioned for Table2Eat - same TEMPORARY tunnel caveat as endpoint
+      // above. Charis/Eos aren't built for this client yet, so they're left
+      // out entirely rather than pointing at nothing.
+      agentEndpoints: {
+        argo: 'https://acute-appraisal-identifies-essay.trycloudflare.com/chat',
+        obol: 'https://citizens-muslim-systematic-awards.trycloudflare.com/chat'
+      },
+      agentPalettes: {
+        argo: ['#4a7fe0', '#7268d6', '#9b5ec4', '#6b9bab', '#4fd0a0'],
+        obol: ['#f2ddb8', '#e8c896', '#dbb179', '#c99760', '#b07f4a']
+      },
       greeting: "Hi, I'm Hora. Ask me about bookings, revenue, availability, or say \"check pending receipts.\"",
       getAccessToken: () => staffAccessToken
     });
@@ -60,6 +73,14 @@
       avatar: 'blob',
       blobPalette: ['#4a7fe0', '#7268d6', '#9b5ec4', '#6b9bab', '#4fd0a0'],
       tts: true,
+      agentEndpoints: {
+        hora: 'https://ease-nail-charm-are.trycloudflare.com/chat',
+        obol: 'https://citizens-muslim-systematic-awards.trycloudflare.com/chat'
+      },
+      agentPalettes: {
+        hora: ['#e0932e', '#eda93c', '#f2bc4c', '#f5d17a', '#f8e5ab'],
+        obol: ['#f2ddb8', '#e8c896', '#dbb179', '#c99760', '#b07f4a']
+      },
       greeting: "Hi, I'm Argo. Ask me about stock levels, reorder needs, or say \"what's running low?\"",
       getAccessToken: () => staffAccessToken
     });

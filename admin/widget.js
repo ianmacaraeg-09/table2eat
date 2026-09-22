@@ -23,6 +23,23 @@
    own real rendering code). Identical drawing logic to DOVA's copy; only
    the palette differs per agent. */
 var DEFAULT_BLOB_PALETTE = ['#4a7fe0', '#7268d6', '#9b5ec4', '#6b9bab', '#4fd0a0']; // Argo's
+
+/* Small hex/rgb lerp helpers, used only by makeBlobAvatar's palette
+   crossfade (setPalette below) - a handoff between two agents swaps the
+   blob to a different character's colors, and snapping instantly reads
+   as a glitch rather than a deliberate transition. */
+function _hexToRgb(hex) {
+  var n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function _lerpColor(a, b, t) {
+  var ca = _hexToRgb(a), cb = _hexToRgb(b);
+  var r = Math.round(ca[0] + (cb[0] - ca[0]) * t);
+  var g = Math.round(ca[1] + (cb[1] - ca[1]) * t);
+  var bch = Math.round(ca[2] + (cb[2] - ca[2]) * t);
+  return 'rgb(' + r + ',' + g + ',' + bch + ')';
+}
+
 var _blobGrainTexture = null;
 function blobGrainTexture() {
   if (_blobGrainTexture) return _blobGrainTexture;
@@ -41,6 +58,7 @@ function blobGrainTexture() {
 }
 function makeBlobAvatar(size, idx, palette) {
   var pal = palette || DEFAULT_BLOB_PALETTE;
+  var palFrom = null, palTo = null, palStart = 0, palDur = 700; // crossfade state - see setPalette
   var seed = idx * 2.399 + 0.7;
   var baseSpeed = 0.80 + (idx % 4) * 0.12;
   var tilt = -0.34 + (idx % 3) * 0.20;
@@ -88,6 +106,17 @@ function makeBlobAvatar(size, idx, palette) {
     var i, b, x, y, a, r;
     ctx.clearRect(0, 0, s, s);
 
+    // Mid-crossfade, draw with interpolated colors instead of `pal`
+    // directly; once the transition completes, `pal` itself is updated
+    // so later frames skip the interpolation math entirely.
+    var activePal = pal;
+    if (palTo) {
+      var pt = Math.min(1, (t - palStart) / palDur);
+      var eased = pt * pt * (3 - 2 * pt); // smoothstep
+      activePal = palTo.map(function (c, ci) { return _lerpColor(palFrom[ci % palFrom.length], c, eased); });
+      if (pt >= 1) { pal = palTo; palTo = null; }
+    }
+
     ctx.beginPath();
     var N = 108;
     for (i = 0; i <= N; i++) {
@@ -109,9 +138,9 @@ function makeBlobAvatar(size, idx, palette) {
     qc.save();
     qc.translate(bs / 2, bs / 2); qc.rotate(tilt); qc.translate(-bs / 2, -bs / 2);
     try { qc.filter = 'blur(' + (bs * 0.026) + 'px)'; } catch (e) {}
-    qc.fillStyle = pal[0];
+    qc.fillStyle = activePal[0];
     qc.fillRect(-bs, -bs, bs * 3, bs * 3);
-    var n = pal.length;
+    var n = activePal.length;
     for (b = 1; b < n; b++) {
       var base = (-s * 0.18 + (s * 1.34) * (b / n)) * kk;
       qc.beginPath();
@@ -124,7 +153,7 @@ function makeBlobAvatar(size, idx, palette) {
       }
       qc.lineTo(bs * 2.2, bs * 2.2);
       qc.closePath();
-      qc.fillStyle = pal[b];
+      qc.fillStyle = activePal[b];
       qc.fill();
     }
     qc.restore();
@@ -167,7 +196,21 @@ function makeBlobAvatar(size, idx, palette) {
   return {
     el: cv,
     setTalking: function (v) { talking = v; if (!v) level = 0; },
-    setLevel: function (v) { level = v; }
+    setLevel: function (v) { level = v; },
+    setPalette: function (newPal) {
+      if (!newPal) return;
+      if (reduceMotion) {
+        // No rAF loop is running in this mode (see the draw(0)-only call
+        // below), so an eased transition would never advance - snap
+        // instead and force the one redraw this mode relies on.
+        pal = newPal;
+        draw(0);
+        return;
+      }
+      palFrom = pal;
+      palTo = newPal;
+      palStart = performance.now();
+    }
   };
 }
 
@@ -236,6 +279,13 @@ function initAgentWidget(config) {
   var blobPalette = config.blobPalette || DEFAULT_BLOB_PALETTE;
   var hasTTS = !!config.tts;
   var sessionKey = 't2e_' + agentName.toLowerCase() + '_session_id';
+  // Cross-agent handoff (see shared/handoff.py on the backend side): both
+  // maps are optional and keyed by the same lowercase short-name the
+  // backend uses in {"handoff": {"target_agent": ...}} - e.g. 'obol'.
+  // A page that doesn't pass these just gets the honest "not supported"
+  // placeholder on a handoff response, same as before this existed.
+  var agentEndpoints = config.agentEndpoints || {};
+  var agentPalettes = config.agentPalettes || {};
 
   var root = document.createElement('div');
   root.className = 'agent-widget';
@@ -246,7 +296,7 @@ function initAgentWidget(config) {
     '</button>' +
     '<div class="agent-widget-panel">' +
       '<div class="agent-widget-header">' +
-        '<span>' + agentName + '</span>' +
+        '<span class="agent-widget-header-name">' + agentName + '</span>' +
         '<span class="agent-widget-header-status"></span>' +
         '<button class="agent-widget-close" aria-label="Close">&times;</button>' +
       '</div>' +
@@ -262,6 +312,7 @@ function initAgentWidget(config) {
   var dot = root.querySelector('.agent-widget-bubble-dot');
   var panel = root.querySelector('.agent-widget-panel');
   var sendBtn = root.querySelector('.agent-widget-send');
+  var headerNameEl = root.querySelector('.agent-widget-header-name');
   var blobInstances = [];
   if (hasBlobAvatar) {
     var bubbleBlob = makeBlobAvatar(38, 4, blobPalette);
@@ -328,6 +379,9 @@ function initAgentWidget(config) {
   }
   function setLevel(v) {
     blobInstances.forEach(function (b) { b.setLevel(v); });
+  }
+  function setBlobPalette(newPal) {
+    blobInstances.forEach(function (b) { b.setPalette(newPal); });
   }
 
   /* Plays a fully-downloaded blob in one shot - the original approach,
@@ -492,6 +546,24 @@ function initAgentWidget(config) {
   }
   function addText(role, text) { return addMessage(role, escapeHtml(text)); }
 
+  /* Cross-agent handoff: retargets this same widget instance at a
+     different agent's endpoint mid-conversation, rather than a page
+     reload or a second widget. Always mints a fresh session_id for the
+     new agent (each backend's session store is independent in-memory
+     state - reusing an id across two of them buys nothing, see
+     dova-ai-agent-widget-frontend skill's writeup on this). */
+  function switchToAgent(target) {
+    var displayName = target.charAt(0).toUpperCase() + target.slice(1);
+    agentName = displayName;
+    endpoint = agentEndpoints[target];
+    sessionKey = 't2e_' + target + '_session_id';
+    sessionId = null;
+    if (headerNameEl) headerNameEl.textContent = displayName;
+    bubble.setAttribute('aria-label', 'Open ' + displayName + ' chat');
+    input.placeholder = 'Message ' + displayName + '…';
+    if (agentPalettes[target]) setBlobPalette(agentPalettes[target]);
+  }
+
   if (!enabled) {
     addText('assistant', agentName + " isn't wired up yet — coming soon.");
     return root;
@@ -514,6 +586,101 @@ function initAgentWidget(config) {
   });
 
   addText('assistant', config.greeting || ("Hi, I'm " + agentName + ". Ask me anything."));
+
+  /* Sends one message and handles the response, including at most one
+     cross-agent handoff hop (the backend itself caps handoffs at one per
+     turn - see dova-ai-agents' shared/handoff.py - but `handoffReason`
+     being set here is this widget's own guard against ever chaining a
+     second hop client-side, belt-and-suspenders). `handoffReason`, when
+     set, means this call IS a post-handoff follow-up: it gets sent to the
+     new agent's endpoint (already switched by the caller) so its server
+     can seed a fresh session with that context, per the locked /chat
+     contract. */
+  async function performSend(text, handoffReason) {
+    var typing = addMessage('assistant typing', '<span></span><span></span><span></span>');
+
+    // Some tool calls (a receipt review does a Supabase fetch AND a vision
+    // API call; a batch review of every pending booking does that once per
+    // booking, server-side, in one request - measured ~12s/booking for
+    // real) can genuinely take a while, especially under provider
+    // queueing - a generous timeout so a slow-but-working request doesn't
+    // get mistaken for a hang, while still resolving eventually instead of
+    // leaving the UI stuck forever. 3 minutes comfortably covers a
+    // realistic batch (~15 pending bookings) for a business this size.
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 180000);
+
+    try {
+      var payload = { message: text, session_id: sessionId };
+      if (surface) payload.surface = surface;
+      if (handoffReason) payload.handoff_reason = handoffReason;
+      if (getAccessToken) {
+        var token = getAccessToken();
+        if (token) payload.access_token = token;
+      }
+      var res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      var data = await res.json();
+      typing.remove();
+      if (!res.ok) throw { httpError: true, message: data.error || ('Request failed (' + res.status + ')') };
+      sessionId = data.session_id;
+      try { sessionStorage.setItem(sessionKey, sessionId); } catch (e) {}
+      dot.classList.add('live');
+      statusEl.textContent = 'Connected';
+
+      if (data.handoff) {
+        var target = data.handoff.target_agent;
+        var targetKnown = agentEndpoints[target];
+        if (!targetKnown || handoffReason) {
+          // Either this page has no endpoint on file for that agent, or
+          // this is already a post-handoff call and the backend somehow
+          // asked for a second hop - same honest fallback either way,
+          // rather than silently dropping the reply or chaining forever.
+          addText('assistant', agentName + ' wants to bring in another specialist for this - that\'s not supported yet.');
+          setTalking(false);
+          return;
+        }
+        switchToAgent(target);
+        addText('system', 'Connecting you to ' + agentName + '…');
+        await performSend(text, data.handoff.reason);
+        return;
+      }
+
+      addMessage('assistant', renderReplyText(data.reply));
+      if (hasTTS) {
+        speakReply(data.reply);
+      } else {
+        setTalking(false);
+      }
+    } catch (err) {
+      clearTimeout(timeoutId);
+      typing.remove();
+      setTalking(false);
+      // Three genuinely different failures, shown differently rather than
+      // one generic "is it down?" message that made a real backend error
+      // (or a slow-but-alive request) indistinguishable from an actual crash:
+      if (err && err.httpError) {
+        // A real response came back with a real error message - show it,
+        // don't discard it. The backend is clearly reachable in this case.
+        addText('error', String(err.message));
+        dot.classList.add('live');
+        statusEl.textContent = 'Connected';
+      } else if (err && err.name === 'AbortError') {
+        addText('error', agentName + ' is taking longer than usual to respond (3 min+) - a large batch review can take a while; it may still finish, try asking again in a moment.');
+        dot.classList.add('live');
+        statusEl.textContent = 'Slow';
+      } else {
+        addText('error', 'Could not reach ' + agentName + ' — is the backend running at ' + endpoint + '?');
+        dot.classList.remove('live');
+        statusEl.textContent = 'Offline';
+      }
+    }
+  }
 
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -544,80 +711,7 @@ function initAgentWidget(config) {
       if (audioCtx2 && audioCtx2.state === 'suspended') { audioCtx2.resume().catch(function () {}); }
     }
 
-    var typing = addMessage('assistant typing', '<span></span><span></span><span></span>');
-
-    // Some tool calls (a receipt review does a Supabase fetch AND a vision
-    // API call; a batch review of every pending booking does that once per
-    // booking, server-side, in one request - measured ~12s/booking for
-    // real) can genuinely take a while, especially under provider
-    // queueing - a generous timeout so a slow-but-working request doesn't
-    // get mistaken for a hang, while still resolving eventually instead of
-    // leaving the UI stuck forever. 3 minutes comfortably covers a
-    // realistic batch (~15 pending bookings) for a business this size.
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function () { controller.abort(); }, 180000);
-
-    try {
-      var payload = { message: text, session_id: sessionId };
-      if (surface) payload.surface = surface;
-      if (getAccessToken) {
-        var token = getAccessToken();
-        if (token) payload.access_token = token;
-      }
-      var res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      var data = await res.json();
-      typing.remove();
-      if (!res.ok) throw { httpError: true, message: data.error || ('Request failed (' + res.status + ')') };
-      sessionId = data.session_id;
-      try { sessionStorage.setItem(sessionKey, sessionId); } catch (e) {}
-      dot.classList.add('live');
-      statusEl.textContent = 'Connected';
-      if (data.handoff) {
-        // The backend answered fine - it just decided this belongs with a
-        // different agent. Say so honestly rather than falling through to
-        // renderReplyText(null), which throws and gets misdiagnosed by the
-        // catch block below as a real backend outage (real bug, found live
-        // 2026-09-22 - see project_table2eat_hora_integration memory).
-        // Actually switching to the target agent's endpoint isn't built yet.
-        addText('assistant', agentName + ' wants to bring in another specialist for this - that\'s not supported yet.');
-        setTalking(false);
-      } else {
-        addMessage('assistant', renderReplyText(data.reply));
-        if (hasTTS) {
-          speakReply(data.reply);
-        } else {
-          setTalking(false);
-        }
-      }
-    } catch (err) {
-      clearTimeout(timeoutId);
-      typing.remove();
-      setTalking(false);
-      // Three genuinely different failures, shown differently rather than
-      // one generic "is it down?" message that made a real backend error
-      // (or a slow-but-alive request) indistinguishable from an actual crash:
-      if (err && err.httpError) {
-        // A real response came back with a real error message - show it,
-        // don't discard it. The backend is clearly reachable in this case.
-        addText('error', String(err.message));
-        dot.classList.add('live');
-        statusEl.textContent = 'Connected';
-      } else if (err && err.name === 'AbortError') {
-        addText('error', agentName + ' is taking longer than usual to respond (3 min+) - a large batch review can take a while; it may still finish, try asking again in a moment.');
-        dot.classList.add('live');
-        statusEl.textContent = 'Slow';
-      } else {
-        addText('error', 'Could not reach ' + agentName + ' — is the backend running at ' + endpoint + '?');
-        dot.classList.remove('live');
-        statusEl.textContent = 'Offline';
-      }
-    }
+    await performSend(text, null);
   });
 
   return root;
