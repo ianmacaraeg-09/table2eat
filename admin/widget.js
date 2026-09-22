@@ -576,13 +576,24 @@ function initAgentWidget(config) {
       if (!res.ok) throw { httpError: true, message: data.error || ('Request failed (' + res.status + ')') };
       sessionId = data.session_id;
       try { sessionStorage.setItem(sessionKey, sessionId); } catch (e) {}
-      addMessage('assistant', renderReplyText(data.reply));
       dot.classList.add('live');
       statusEl.textContent = 'Connected';
-      if (hasTTS) {
-        speakReply(data.reply);
-      } else {
+      if (data.handoff) {
+        // The backend answered fine - it just decided this belongs with a
+        // different agent. Say so honestly rather than falling through to
+        // renderReplyText(null), which throws and gets misdiagnosed by the
+        // catch block below as a real backend outage (real bug, found live
+        // 2026-09-22 - see project_table2eat_hora_integration memory).
+        // Actually switching to the target agent's endpoint isn't built yet.
+        addText('assistant', agentName + ' wants to bring in another specialist for this - that\'s not supported yet.');
         setTalking(false);
+      } else {
+        addMessage('assistant', renderReplyText(data.reply));
+        if (hasTTS) {
+          speakReply(data.reply);
+        } else {
+          setTalking(false);
+        }
       }
     } catch (err) {
       clearTimeout(timeoutId);
