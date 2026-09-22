@@ -29,9 +29,11 @@
     horaWidgetInitialized = true;
     agentWidgetsByView.bookings = initAgentWidget({
       agentName: 'Hora',
-      // Local dev endpoint for now - swap for the real tunnel URL once
-      // Hora's Table2Eat instance is actually hosted somewhere reachable.
-      endpoint: 'http://127.0.0.1:8813/chat',
+      // TEMPORARY cloudflared quick tunnel for handoff-mechanism testing
+      // (2026-09-22) - this URL is ephemeral and will die whenever the
+      // tunnel process stops; swap back to a real hosted URL once one
+      // exists, don't leave this as the permanent production value.
+      endpoint: 'https://ease-nail-charm-are.trycloudflare.com/chat',
       enabled: true,
       surface: 'admin',
       avatar: 'blob',
@@ -48,9 +50,11 @@
     argoWidgetInitialized = true;
     agentWidgetsByView.inventory = initAgentWidget({
       agentName: 'Argo',
-      // Local dev endpoint for now - swap for the real tunnel URL once
-      // Argo's Table2Eat instance is actually hosted somewhere reachable.
-      endpoint: 'http://127.0.0.1:8815/chat',
+      // TEMPORARY cloudflared quick tunnel for handoff-mechanism testing
+      // (2026-09-22) - this URL is ephemeral and will die whenever the
+      // tunnel process stops; swap back to a real hosted URL once one
+      // exists, don't leave this as the permanent production value.
+      endpoint: 'https://acute-appraisal-identifies-essay.trycloudflare.com/chat',
       enabled: true,
       surface: 'admin',
       avatar: 'blob',
